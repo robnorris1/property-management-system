@@ -1,5 +1,16 @@
 import { useState, useEffect } from 'react';
-import { Calendar, DollarSign, User, Wrench, ChevronDown, ChevronUp, Edit3, Trash2, Award } from 'lucide-react';
+import {
+    Calendar,
+    BadgePoundSterlingIcon,
+    User,
+    Wrench,
+    ChevronDown,
+    ChevronUp,
+    Edit3,
+    Trash2,
+    Award,
+    PoundSterlingIcon
+} from 'lucide-react';
 
 interface MaintenanceRecord {
     id: number;
@@ -91,20 +102,22 @@ export default function MaintenanceHistory({
     };
 
     const formatDate = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString('en-US', {
+        return new Date(dateString).toLocaleDateString('en-GB', {
             year: 'numeric',
             month: 'short',
             day: 'numeric'
         });
     };
 
-    const formatCurrency = (amount: number | null) => {
-        if (!amount) return 'N/A';
-        return new Intl.NumberFormat('en-US', {
+    function formatCurrency(amount: number | null | undefined) {
+        if (!amount) return '£0';
+        return new Intl.NumberFormat('en-GB', {
             style: 'currency',
-            currency: 'USD'
+            currency: 'GBP',
+            minimumFractionDigits: 0,
+            maximumFractionDigits: 2
         }).format(amount);
-    };
+    }
 
     const getMaintenanceTypeColor = (type: string) => {
         const colors = {
@@ -253,7 +266,7 @@ export default function MaintenanceHistory({
                                             </span>
                                             {record.cost && (
                                                 <span className="flex items-center gap-1">
-                                                    <DollarSign className="w-4 h-4" />
+                                                    <PoundSterlingIcon className="w-4 h-4" />
                                                     {formatCurrency(record.cost)}
                                                 </span>
                                             )}

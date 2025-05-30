@@ -2,7 +2,7 @@
 'use client'
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Building2, Wrench, ArrowRight } from 'lucide-react';
+import {Building2, Wrench, ArrowRight, Calendar} from 'lucide-react';
 import { Property } from '@/types';
 import PropertyManagementWrapper from '@/components/PropertyManagementWrapper';
 import AddPropertyButton from '@/components/AddPropertyButton';
@@ -91,8 +91,8 @@ export default function Home() {
                                     </p>
                                 </div>
                                 <div className="flex items-center gap-4">
-                                    <AddPropertyButton />
-                                    <UserMenu />
+                                    <AddPropertyButton/>
+                                    <UserMenu/>
                                 </div>
                             </div>
                         </div>
@@ -145,7 +145,7 @@ export default function Home() {
                                                 <div className="flex items-center gap-2">
                                                     <Building2 className="w-4 h-4 text-gray-400" />
                                                     <span className="text-sm text-gray-600">
-                                                        Added {new Date(property.created_at).toLocaleDateString('en-US', {
+                                                        Added {new Date(property.created_at).toLocaleDateString('en-GB', {
                                                         month: 'short',
                                                         day: 'numeric',
                                                         year: 'numeric'

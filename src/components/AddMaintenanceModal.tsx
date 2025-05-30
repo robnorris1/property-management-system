@@ -1,5 +1,16 @@
 import React, { useState } from 'react';
-import { X, Wrench, Calendar, DollarSign, User, Plus, Trash2, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import {
+    X,
+    Wrench,
+    Calendar,
+    User,
+    Plus,
+    Trash2,
+    CheckCircle,
+    AlertCircle,
+    Loader2,
+    PoundSterlingIcon
+} from 'lucide-react';
 
 interface AddMaintenanceModalProps {
     isOpen: boolean;
@@ -266,11 +277,11 @@ export default function AddMaintenanceModal({
                                         name="maintenance_type"
                                         value={formData.maintenance_type}
                                         onChange={handleInputChange}
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors text-gray-900 bg-white"
                                         disabled={isLoading}
                                     >
                                         {maintenanceTypes.map(type => (
-                                            <option key={type.value} value={type.value}>
+                                            <option key={type.value} value={type.value} className="text-gray-900">
                                                 {type.label}
                                             </option>
                                         ))}
@@ -288,11 +299,11 @@ export default function AddMaintenanceModal({
                                         name="status"
                                         value={formData.status}
                                         onChange={handleInputChange}
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors text-gray-900 bg-white"
                                         disabled={isLoading}
                                     >
                                         {statusOptions.map(status => (
-                                            <option key={status.value} value={status.value}>
+                                            <option key={status.value} value={status.value} className="text-gray-900">
                                                 {status.label}
                                             </option>
                                         ))}
@@ -311,7 +322,7 @@ export default function AddMaintenanceModal({
                                     onChange={handleInputChange}
                                     placeholder="Describe what was done during this maintenance..."
                                     rows={3}
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors resize-none"
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors resize-none text-gray-900 bg-white placeholder-gray-500"
                                     disabled={isLoading}
                                 />
                             </div>
@@ -323,13 +334,14 @@ export default function AddMaintenanceModal({
                                         Maintenance Date *
                                     </label>
                                     <div className="relative">
-                                        <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                                        <Calendar
+                                            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4"/>
                                         <input
                                             type="date"
                                             name="maintenance_date"
                                             value={formData.maintenance_date}
                                             onChange={handleInputChange}
-                                            className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                                            className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors text-gray-900 bg-white"
                                             disabled={isLoading}
                                         />
                                     </div>
@@ -340,13 +352,14 @@ export default function AddMaintenanceModal({
                                         Next Due Date
                                     </label>
                                     <div className="relative">
-                                        <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                                        <Calendar
+                                            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4"/>
                                         <input
                                             type="date"
                                             name="next_due_date"
                                             value={formData.next_due_date}
                                             onChange={handleInputChange}
-                                            className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                                            className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors text-gray-900 bg-white"
                                             disabled={isLoading}
                                         />
                                     </div>
@@ -355,7 +368,6 @@ export default function AddMaintenanceModal({
                                     </p>
                                 </div>
                             </div>
-
                             {/* Cost & Warranty */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
@@ -363,7 +375,8 @@ export default function AddMaintenanceModal({
                                         Cost
                                     </label>
                                     <div className="relative">
-                                        <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                                        <PoundSterlingIcon
+                                            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4"/>
                                         <input
                                             type="number"
                                             name="cost"
@@ -372,7 +385,7 @@ export default function AddMaintenanceModal({
                                             placeholder="0.00"
                                             step="0.01"
                                             min="0"
-                                            className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                                            className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors text-gray-900 bg-white placeholder-gray-500"
                                             disabled={isLoading}
                                         />
                                     </div>
@@ -387,7 +400,7 @@ export default function AddMaintenanceModal({
                                         name="warranty_until"
                                         value={formData.warranty_until}
                                         onChange={handleInputChange}
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors text-gray-900 bg-white"
                                         disabled={isLoading}
                                     />
                                 </div>
@@ -400,14 +413,15 @@ export default function AddMaintenanceModal({
                                         Technician Name
                                     </label>
                                     <div className="relative">
-                                        <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                                        <User
+                                            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4"/>
                                         <input
                                             type="text"
                                             name="technician_name"
                                             value={formData.technician_name}
                                             onChange={handleInputChange}
                                             placeholder="John Smith"
-                                            className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                                            className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors text-gray-900 bg-white placeholder-gray-500"
                                             disabled={isLoading}
                                         />
                                     </div>
@@ -423,7 +437,7 @@ export default function AddMaintenanceModal({
                                         value={formData.technician_company}
                                         onChange={handleInputChange}
                                         placeholder="ABC Repair Services"
-                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors text-gray-900 bg-white placeholder-gray-500"
                                         disabled={isLoading}
                                     />
                                 </div>
@@ -442,7 +456,7 @@ export default function AddMaintenanceModal({
                                                 value={part}
                                                 onChange={(e) => handlePartChange(index, e.target.value)}
                                                 placeholder="Part name or description"
-                                                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                                                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors text-gray-900 bg-white placeholder-gray-500"
                                                 disabled={isLoading}
                                             />
                                             {formData.parts_replaced.length > 1 && (
@@ -452,7 +466,7 @@ export default function AddMaintenanceModal({
                                                     className="px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                                                     disabled={isLoading}
                                                 >
-                                                    <Trash2 className="w-4 h-4" />
+                                                    <Trash2 className="w-4 h-4"/>
                                                 </button>
                                             )}
                                         </div>
@@ -463,7 +477,7 @@ export default function AddMaintenanceModal({
                                         className="flex items-center gap-2 text-blue-600 hover:text-blue-800 text-sm transition-colors"
                                         disabled={isLoading}
                                     >
-                                        <Plus className="w-4 h-4" />
+                                        <Plus className="w-4 h-4"/>
                                         Add another part
                                     </button>
                                 </div>
@@ -480,15 +494,16 @@ export default function AddMaintenanceModal({
                                     onChange={handleInputChange}
                                     placeholder="Any additional observations, recommendations, or notes..."
                                     rows={3}
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors resize-none"
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors resize-none text-gray-900 bg-white placeholder-gray-500"
                                     disabled={isLoading}
                                 />
                             </div>
 
                             {/* Error Message */}
                             {error && (
-                                <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg text-sm">
-                                    <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0" />
+                                <div
+                                    className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg text-sm">
+                                    <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0"/>
                                     <span className="text-red-800">{error}</span>
                                 </div>
                             )}
@@ -511,7 +526,7 @@ export default function AddMaintenanceModal({
                                 >
                                     {isLoading ? (
                                         <>
-                                            <Loader2 className="w-4 h-4 animate-spin" />
+                                            <Loader2 className="w-4 h-4 animate-spin"/>
                                             Adding Record...
                                         </>
                                     ) : (

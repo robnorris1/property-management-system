@@ -231,11 +231,11 @@ export default function AddApplianceModal({ isOpen, onClose, onSuccess, property
                                     name="status"
                                     value={formData.status}
                                     onChange={handleInputChange}
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors text-gray-900 bg-white"
                                     disabled={isLoading}
                                 >
                                     {statusOptions.map(status => (
-                                        <option key={status.value} value={status.value}>
+                                        <option key={status.value} value={status.value} className="text-gray-900">
                                             {status.label}
                                         </option>
                                     ))}
@@ -244,11 +244,13 @@ export default function AddApplianceModal({ isOpen, onClose, onSuccess, property
 
                             {/* Installation Date */}
                             <div>
-                                <label htmlFor="installation_date" className="block text-sm font-medium text-gray-700 mb-2">
+                                <label htmlFor="installation_date"
+                                       className="block text-sm font-medium text-gray-700 mb-2">
                                     Installation Date
                                 </label>
                                 <div className="relative">
-                                    <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                                    <Calendar
+                                        className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4"/>
                                     <input
                                         type="date"
                                         id="installation_date"
@@ -263,11 +265,13 @@ export default function AddApplianceModal({ isOpen, onClose, onSuccess, property
 
                             {/* Last Maintenance Date */}
                             <div>
-                                <label htmlFor="last_maintenance" className="block text-sm font-medium text-gray-700 mb-2">
+                                <label htmlFor="last_maintenance"
+                                       className="block text-sm font-medium text-gray-700 mb-2">
                                     Last Maintenance Date
                                 </label>
                                 <div className="relative">
-                                    <Wrench className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                                    <Wrench
+                                        className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4"/>
                                     <input
                                         type="date"
                                         id="last_maintenance"
@@ -285,8 +289,9 @@ export default function AddApplianceModal({ isOpen, onClose, onSuccess, property
 
                             {/* Error Message */}
                             {error && (
-                                <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg text-sm">
-                                    <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0" />
+                                <div
+                                    className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg text-sm">
+                                    <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0"/>
                                     <span className="text-red-800">{error}</span>
                                 </div>
                             )}
@@ -308,7 +313,7 @@ export default function AddApplianceModal({ isOpen, onClose, onSuccess, property
                                 >
                                     {isLoading ? (
                                         <>
-                                            <Loader2 className="w-4 h-4 animate-spin" />
+                                            <Loader2 className="w-4 h-4 animate-spin"/>
                                             Adding...
                                         </>
                                     ) : (

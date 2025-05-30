@@ -70,16 +70,21 @@ export async function PUT(request, { params }) {
 }
 
 export async function DELETE(request, { params }) {
+    const client = await pool.connect();
+
     try {
+        await client.query('BEGIN');
+
         const { id } = await params;
 
         // Check if maintenance record exists and get details
-        const existingRecord = await pool.query(
+        const existingRecord = await client.query(
             'SELECT appliance_id, cost FROM maintenance_records WHERE id = $1',
             [id]
         );
 
         if (existingRecord.rows.length === 0) {
+            await client.query('ROLLBACK');
             return Response.json(
                 { error: 'Maintenance record not found' },
                 { status: 404 }
@@ -89,32 +94,36 @@ export async function DELETE(request, { params }) {
         const { appliance_id, cost } = existingRecord.rows[0];
 
         // Delete maintenance record
-        await pool.query('DELETE FROM maintenance_records WHERE id = $1', [id]);
+        await client.query('DELETE FROM maintenance_records WHERE id = $1', [id]);
 
         // Update appliance totals (subtract deleted cost)
-        if (cost) {
-            await pool.query(`
-                UPDATE appliances 
-                SET 
+        if (cost && parseFloat(cost) > 0) {
+            await client.query(`
+                UPDATE appliances
+                SET
                     maintenance_count = GREATEST(maintenance_count - 1, 0),
-                    total_maintenance_cost = GREATEST(COALESCE(total_maintenance_cost, 0) - $1::DECIMAL(10,2), 0)
+                    total_maintenance_cost = GREATEST(COALESCE(total_maintenance_cost, 0) - $1, 0)
                 WHERE id = $2
             `, [parseFloat(cost), appliance_id]);
         } else {
-            await pool.query(`
-                UPDATE appliances 
+            await client.query(`
+                UPDATE appliances
                 SET maintenance_count = GREATEST(maintenance_count - 1, 0)
                 WHERE id = $1
             `, [appliance_id]);
         }
 
+        await client.query('COMMIT');
         return Response.json({ message: 'Maintenance record deleted successfully' });
 
     } catch (error) {
+        await client.query('ROLLBACK');
         console.error('Database error:', error);
         return Response.json(
             { error: 'Failed to delete maintenance record' },
             { status: 500 }
         );
+    } finally {
+        client.release();
     }
 }

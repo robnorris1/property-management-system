@@ -54,19 +54,20 @@ function getStatusIcon(status: string) {
 
 function formatDate(dateString: string | null) {
     if (!dateString) return 'Not recorded';
-    return new Date(dateString).toLocaleDateString('en-US', {
-        year: 'numeric',
+    return new Date(dateString).toLocaleDateString('en-GB', {
+        day: 'numeric',
         month: 'short',
-        day: 'numeric'
+        year: 'numeric'
     });
 }
 
 function formatCurrency(amount: number | null | undefined) {
-    if (!amount) return '$0';
-    return new Intl.NumberFormat('en-US', {
+    if (!amount && amount !== 0) return '£0';
+    return new Intl.NumberFormat('en-GB', {
         style: 'currency',
-        currency: 'USD',
-        minimumFractionDigits: 0
+        currency: 'GBP',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2
     }).format(amount);
 }
 
@@ -148,27 +149,62 @@ export default function EnhancedPropertyDetails({
         setShowAddMaintenanceModal(true);
     };
 
-    const handleQuickMaintenance = async (appliance: Appliance) => {
-        // Quick maintenance - just update last_maintenance to today
+    const handleMarkServiced = async (appliance: Appliance) => {
+        const confirmed = confirm(
+            `Mark ${appliance.name} as Serviced\n\n` +
+            `This will:\n` +
+            `• Add a routine maintenance record for today\n` +
+            `• Set status to 'working'\n` +
+            `• Update maintenance counters\n\n` +
+            `Continue?`
+        );
+
+        if (!confirmed) return;
+
         try {
-            const today = new Date().toISOString().split('T')[0];
-            const response = await fetch(`/api/appliances/${appliance.id}`, {
+            // Create a proper maintenance record
+            const response = await fetch('/api/maintenance', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    appliance_id: appliance.id,
+                    maintenance_type: 'routine',
+                    description: 'Routine maintenance service completed',
+                    cost: null, // No cost for quick service
+                    maintenance_date: new Date().toISOString().split('T')[0],
+                    status: 'completed',
+                    notes: 'Service marked as completed via Mark Serviced button'
+                }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to add maintenance record');
+            }
+
+            // Update appliance status to working
+            await fetch(`/api/appliances/${appliance.id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
                     ...appliance,
-                    last_maintenance: today,
                     status: 'working'
                 }),
             });
 
-            if (response.ok) {
-                handleRefresh();
-            }
+            // Refresh the data to show updated counts and costs
+            handleRefresh();
+
+            // Show success message
+            alert(`✅ ${appliance.name} marked as serviced successfully!`);
+
         } catch (err) {
-            console.error('Failed to update maintenance:', err);
+            console.error('Failed to mark as serviced:', err);
+            alert(`❌ Failed to mark ${appliance.name} as serviced. Please try again.\n\nError: ${err instanceof Error ? err.message : 'Unknown error'}`);
         }
     };
 
@@ -209,8 +245,18 @@ export default function EnhancedPropertyDetails({
     const { property, appliances } = propertyData;
 
     // Calculate property-level statistics
-    const totalMaintenanceCost = appliances.reduce((sum, a) => sum + (a.total_maintenance_cost || 0), 0);
-    const totalMaintenanceCount = appliances.reduce((sum, a) => sum + (a.maintenance_count || 0), 0);
+    const totalMaintenanceCost = appliances.reduce((sum, a) => {
+        const cost = a.total_maintenance_cost;
+        const numericCost = typeof cost === 'string' ? parseFloat(cost) : cost;
+        return sum + (numericCost || 0);
+    }, 0);
+
+    const totalMaintenanceCount = appliances.reduce((sum, a) => {
+        const count = a.maintenance_count;
+        const numericCount = typeof count === 'string' ? parseInt(count) : count;
+        return sum + (numericCount || 0);
+    }, 0);
+
     const appliancesNeedingMaintenance = appliances.filter(a => {
         const daysSince = calculateDaysSince(a.last_maintenance);
         return !daysSince || daysSince > 90;
@@ -267,7 +313,7 @@ export default function EnhancedPropertyDetails({
                                     </div>
                                     <div className="text-center">
                                         <div className="text-lg font-semibold text-purple-600">
-                                            {totalMaintenanceCount > 0 ? formatCurrency(totalMaintenanceCost / totalMaintenanceCount) : '$0'}
+                                            {totalMaintenanceCount > 0 ? formatCurrency(totalMaintenanceCost / totalMaintenanceCount) : '£0'}
                                         </div>
                                         <div className="text-xs text-gray-600">Avg Service Cost</div>
                                     </div>
@@ -423,10 +469,11 @@ export default function EnhancedPropertyDetails({
                                                             Edit
                                                         </button>
                                                         <button
-                                                            onClick={() => handleQuickMaintenance(appliance)}
-                                                            className="flex-1 bg-blue-600 text-white px-3 py-2 rounded text-sm hover:bg-blue-700 transition-colors"
+                                                            onClick={() => handleMarkServiced(appliance)}
+                                                            className="flex-1 bg-blue-600 text-white px-3 py-2 rounded text-sm hover:bg-blue-700 transition-colors flex items-center justify-center gap-1"
                                                         >
-                                                            Quick Service
+                                                            <CheckCircle className="w-3 h-3"/>
+                                                            Mark Serviced
                                                         </button>
                                                         <button
                                                             onClick={() => handleAddMaintenance(appliance)}

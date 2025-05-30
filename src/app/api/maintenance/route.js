@@ -1,8 +1,11 @@
-// src/app/api/maintenance/route.js
 import pool from '@/lib/db';
 
 export async function POST(request) {
+    const client = await pool.connect();
+
     try {
+        await client.query('BEGIN');
+
         const {
             appliance_id,
             maintenance_type,
@@ -20,6 +23,7 @@ export async function POST(request) {
 
         // Validate required fields
         if (!appliance_id || !maintenance_type || !description || !maintenance_date) {
+            await client.query('ROLLBACK');
             return Response.json(
                 { error: 'Appliance ID, maintenance type, description, and date are required' },
                 { status: 400 }
@@ -27,12 +31,13 @@ export async function POST(request) {
         }
 
         // Verify appliance exists
-        const applianceCheck = await pool.query(
+        const applianceCheck = await client.query(
             'SELECT id FROM appliances WHERE id = $1',
             [appliance_id]
         );
 
         if (applianceCheck.rows.length === 0) {
+            await client.query('ROLLBACK');
             return Response.json(
                 { error: 'Appliance not found' },
                 { status: 404 }
@@ -43,7 +48,7 @@ export async function POST(request) {
         const numericCost = cost && !isNaN(parseFloat(cost)) ? parseFloat(cost) : null;
 
         // Insert maintenance record
-        const result = await pool.query(`
+        const result = await client.query(`
             INSERT INTO maintenance_records (
                 appliance_id,
                 maintenance_type,
@@ -58,7 +63,7 @@ export async function POST(request) {
                 warranty_until,
                 status
             ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
-            RETURNING *
+                RETURNING *
         `, [
             appliance_id,
             maintenance_type,
@@ -74,15 +79,14 @@ export async function POST(request) {
             status || 'completed'
         ]);
 
-        // Update appliance's last_maintenance date and cost tracking
-        // Use explicit CAST to ensure type consistency
-        await pool.query(`
-            UPDATE appliances 
-            SET 
+        // Update appliance totals - THIS IS THE KEY FIX
+        await client.query(`
+            UPDATE appliances
+            SET
                 last_maintenance = $1,
-                last_maintenance_cost = $2::DECIMAL(10,2),
+                last_maintenance_cost = COALESCE($2, 0),
                 maintenance_count = maintenance_count + 1,
-                total_maintenance_cost = COALESCE(total_maintenance_cost, 0) + COALESCE($2::DECIMAL(10,2), 0)
+                total_maintenance_cost = COALESCE(total_maintenance_cost, 0) + COALESCE($2, 0)
             WHERE id = $3
         `, [
             maintenance_date,
@@ -90,14 +94,18 @@ export async function POST(request) {
             appliance_id
         ]);
 
+        await client.query('COMMIT');
         return Response.json(result.rows[0], { status: 201 });
 
     } catch (error) {
+        await client.query('ROLLBACK');
         console.error('Database error:', error);
         return Response.json(
             { error: 'Failed to create maintenance record' },
             { status: 500 }
         );
+    } finally {
+        client.release();
     }
 }
 
