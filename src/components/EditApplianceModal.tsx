@@ -43,8 +43,9 @@ export default function EditApplianceModal({ isOpen, onClose, onSuccess, applian
 
     const statusOptions = [
         { value: 'working', label: 'Working' },
-        { value: 'maintenance', label: 'Needs Maintenance' },
-        { value: 'broken', label: 'Broken' }
+        { value: 'needs_repair', label: 'Needs Repair' },
+        { value: 'under_repair', label: 'Under Repair' },
+        { value: 'out_of_service', label: 'Out of Service' }
     ];
 
     // Format date for input field (YYYY-MM-DD)
@@ -213,7 +214,7 @@ export default function EditApplianceModal({ isOpen, onClose, onSuccess, applian
                             <div>
                                 <h3 className="font-semibold text-gray-900">Delete Appliance</h3>
                                 <p className="text-sm text-gray-600">
-                                    Are you sure you want to delete "{appliance.name}"? This action cannot be undone.
+                                    Are you sure you want to delete &quot;{appliance.name}&quot;? This action cannot be undone.
                                 </p>
                             </div>
                         </div>
@@ -311,7 +312,7 @@ export default function EditApplianceModal({ isOpen, onClose, onSuccess, applian
                                     name="status"
                                     value={formData.status}
                                     onChange={handleInputChange}
-                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors"
+                                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors text-gray-900 bg-white"
                                     disabled={isLoading}
                                 >
                                     {statusOptions.map(status => (

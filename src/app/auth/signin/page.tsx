@@ -31,7 +31,7 @@ export default function SignIn() {
                 router.push('/')
                 router.refresh()
             }
-        } catch (error) {
+        } catch {
             setError('An error occurred. Please try again.')
         } finally {
             setIsLoading(false)
@@ -127,7 +127,7 @@ export default function SignIn() {
                     </div>
 
                     <div className="text-center">
-                        <span className="text-gray-600">Don't have an account? </span>
+                        <span className="text-gray-600">Don&apos;t have an account? </span>
                         <Link
                             href="/auth/signup"
                             className="text-blue-600 hover:text-blue-800 font-medium"

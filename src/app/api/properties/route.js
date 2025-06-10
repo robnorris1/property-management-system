@@ -1,6 +1,6 @@
 import pool from '@/lib/db';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export async function GET(request) {

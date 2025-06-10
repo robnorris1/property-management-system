@@ -31,12 +31,13 @@ export default function UserMenu() {
                 className="flex items-center gap-2 px-4 py-2 rounded-lg hover:bg-gray-100 transition-colors"
             >
                 {session.user?.image ? (
+                    // eslint-disable-next-line @next/next/no-img-element
                     <img
                         src={session.user.image}
                         alt={session.user.name || 'User'}
                         className="w-8 h-8 rounded-full"
                     />
-                ) : (
+                    ) : (
                     <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
                         <User className="w-4 h-4 text-white" />
                     </div>

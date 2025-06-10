@@ -7,6 +7,8 @@ import AddApplianceModal from '@/components/AddApplianceModal';
 import EditApplianceModal from '@/components/EditApplianceModal';
 import AddMaintenanceModal from '@/components/AddMaintenanceModal';
 import MaintenanceHistory from '@/components/MaintenanceHistory';
+import ReportIssueModal from '@/components/ReportIssueModal';
+import IssuesList from '@/components/IssuesList';
 
 interface Property {
     id: number;
@@ -37,6 +39,9 @@ interface PropertyWithAppliances {
 function getStatusColor(status: string) {
     switch (status.toLowerCase()) {
         case 'working': return 'text-green-600 bg-green-50';
+        case 'needs_repair': return 'text-orange-600 bg-orange-50';
+        case 'under_repair': return 'text-yellow-600 bg-yellow-50';
+        case 'out_of_service': return 'text-red-600 bg-red-50';
         case 'maintenance': return 'text-yellow-600 bg-yellow-50';
         case 'broken': return 'text-red-600 bg-red-50';
         default: return 'text-gray-600 bg-gray-50';
@@ -46,9 +51,24 @@ function getStatusColor(status: string) {
 function getStatusIcon(status: string) {
     switch (status.toLowerCase()) {
         case 'working': return <CheckCircle className="w-4 h-4" />;
+        case 'needs_repair': return <Wrench className="w-4 h-4" />;
+        case 'under_repair': return <Wrench className="w-4 h-4" />;
+        case 'out_of_service': return <AlertTriangle className="w-4 h-4" />;
         case 'maintenance': return <Wrench className="w-4 h-4" />;
         case 'broken': return <AlertTriangle className="w-4 h-4" />;
         default: return <CheckCircle className="w-4 h-4" />;
+    }
+}
+
+function getStatusLabel(status: string) {
+    switch (status.toLowerCase()) {
+        case 'working': return 'Working';
+        case 'needs_repair': return 'Needs Repair';
+        case 'under_repair': return 'Under Repair';
+        case 'out_of_service': return 'Out of Service';
+        case 'maintenance': return 'Needs Maintenance';
+        case 'broken': return 'Broken';
+        default: return status.charAt(0).toUpperCase() + status.slice(1);
     }
 }
 
@@ -89,12 +109,13 @@ export default function EnhancedPropertyDetails({
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState('');
     const [propertyId, setPropertyId] = useState<string>('');
-    const [activeTab, setActiveTab] = useState<'overview' | 'maintenance'>('overview');
+    const [activeTab, setActiveTab] = useState<'overview' | 'maintenance' | 'issues'>('overview');
 
     // Modal states
     const [showAddApplianceModal, setShowAddApplianceModal] = useState(false);
     const [showEditApplianceModal, setShowEditApplianceModal] = useState(false);
     const [showAddMaintenanceModal, setShowAddMaintenanceModal] = useState(false);
+    const [showReportIssueModal, setShowReportIssueModal] = useState(false);
     const [selectedAppliance, setSelectedAppliance] = useState<Appliance | null>(null);
 
     useEffect(() => {
@@ -147,6 +168,11 @@ export default function EnhancedPropertyDetails({
     const handleAddMaintenance = (appliance: Appliance) => {
         setSelectedAppliance(appliance);
         setShowAddMaintenanceModal(true);
+    };
+
+    const handleReportIssue = (appliance: Appliance) => {
+        setSelectedAppliance(appliance);
+        setShowReportIssueModal(true);
     };
 
     const handleMarkServiced = async (appliance: Appliance) => {
@@ -358,6 +384,16 @@ export default function EnhancedPropertyDetails({
                             >
                                 Maintenance History
                             </button>
+                            <button
+                                onClick={() => setActiveTab('issues')}
+                                className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
+                                    activeTab === 'issues'
+                                        ? 'border-blue-500 text-blue-600'
+                                        : 'border-transparent text-gray-500 hover:text-gray-700'
+                                }`}
+                            >
+                                Issues & Problems
+                            </button>
                         </nav>
                     </div>
 
@@ -407,7 +443,7 @@ export default function EnhancedPropertyDetails({
 
                                                         <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(appliance.status)}`}>
                                                             {getStatusIcon(appliance.status)}
-                                                            <span className="capitalize">{appliance.status}</span>
+                                                            <span>{getStatusLabel(appliance.status)}</span>
                                                         </div>
                                                     </div>
 
@@ -468,19 +504,31 @@ export default function EnhancedPropertyDetails({
                                                         >
                                                             Edit
                                                         </button>
-                                                        <button
-                                                            onClick={() => handleMarkServiced(appliance)}
-                                                            className="flex-1 bg-blue-600 text-white px-3 py-2 rounded text-sm hover:bg-blue-700 transition-colors flex items-center justify-center gap-1"
-                                                        >
-                                                            <CheckCircle className="w-3 h-3"/>
-                                                            Mark Serviced
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleAddMaintenance(appliance)}
-                                                            className="flex-1 bg-green-600 text-white px-3 py-2 rounded text-sm hover:bg-green-700 transition-colors"
-                                                        >
-                                                            Log Service
-                                                        </button>
+                                                        {appliance.status !== 'working' ? (
+                                                            <button
+                                                                onClick={() => handleAddMaintenance(appliance)}
+                                                                className="flex-1 bg-green-600 text-white px-3 py-2 rounded text-sm hover:bg-green-700 transition-colors"
+                                                            >
+                                                                Fix Issue
+                                                            </button>
+                                                        ) : (
+                                                            <>
+                                                                <button
+                                                                    onClick={() => handleReportIssue(appliance)}
+                                                                    className="flex-1 bg-red-600 text-white px-3 py-2 rounded text-sm hover:bg-red-700 transition-colors flex items-center justify-center gap-1"
+                                                                >
+                                                                    <AlertTriangle className="w-3 h-3"/>
+                                                                    Report Issue
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => handleMarkServiced(appliance)}
+                                                                    className="flex-1 bg-blue-600 text-white px-3 py-2 rounded text-sm hover:bg-blue-700 transition-colors flex items-center justify-center gap-1"
+                                                                >
+                                                                    <CheckCircle className="w-3 h-3"/>
+                                                                    Service
+                                                                </button>
+                                                            </>
+                                                        )}
                                                     </div>
                                                 </div>
                                             );
@@ -519,6 +567,36 @@ export default function EnhancedPropertyDetails({
                                 )}
                             </div>
                         )}
+
+                        {activeTab === 'issues' && (
+                            <div>
+                                {appliances.length === 0 ? (
+                                    <div className="text-center py-12">
+                                        <AlertTriangle className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                                        <h3 className="text-lg font-medium text-gray-900 mb-2">
+                                            No issues to track
+                                        </h3>
+                                        <p className="text-gray-600">
+                                            Add appliances first to start reporting issues.
+                                        </p>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-6">
+                                        {appliances.map((appliance) => (
+                                            <div key={appliance.id}>
+                                                <h4 className="text-lg font-semibold text-gray-900 mb-4">
+                                                    {appliance.name}
+                                                </h4>
+                                                <IssuesList
+                                                    applianceId={appliance.id}
+                                                    onResolve={handleRefresh}
+                                                />
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
@@ -545,6 +623,17 @@ export default function EnhancedPropertyDetails({
                 isOpen={showAddMaintenanceModal}
                 onClose={() => {
                     setShowAddMaintenanceModal(false);
+                    setSelectedAppliance(null);
+                }}
+                onSuccess={handleRefresh}
+                applianceId={selectedAppliance?.id || 0}
+                applianceName={selectedAppliance?.name || ''}
+            />
+
+            <ReportIssueModal
+                isOpen={showReportIssueModal}
+                onClose={() => {
+                    setShowReportIssueModal(false);
                     setSelectedAppliance(null);
                 }}
                 onSuccess={handleRefresh}

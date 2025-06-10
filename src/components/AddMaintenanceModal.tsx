@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import {
     X,
     Wrench,
@@ -46,22 +46,22 @@ export default function AddMaintenanceModal({
     const [showSuccess, setShowSuccess] = useState(false);
 
     const maintenanceTypes = [
-        { value: 'routine', label: 'Routine Maintenance', description: 'Regular scheduled maintenance' },
-        { value: 'repair', label: 'Repair', description: 'Fix broken or malfunctioning parts' },
-        { value: 'inspection', label: 'Inspection', description: 'Safety or performance inspection' },
-        { value: 'replacement', label: 'Replacement', description: 'Part or component replacement' },
-        { value: 'cleaning', label: 'Deep Cleaning', description: 'Thorough cleaning service' },
-        { value: 'upgrade', label: 'Upgrade', description: 'Performance or efficiency upgrade' }
+        {value: 'routine', label: 'Routine Maintenance', description: 'Regular scheduled maintenance'},
+        {value: 'repair', label: 'Repair', description: 'Fix broken or malfunctioning parts'},
+        {value: 'inspection', label: 'Inspection', description: 'Safety or performance inspection'},
+        {value: 'replacement', label: 'Replacement', description: 'Part or component replacement'},
+        {value: 'cleaning', label: 'Deep Cleaning', description: 'Thorough cleaning service'},
+        {value: 'upgrade', label: 'Upgrade', description: 'Performance or efficiency upgrade'}
     ];
 
     const statusOptions = [
-        { value: 'completed', label: 'Completed' },
-        { value: 'scheduled', label: 'Scheduled' },
-        { value: 'in_progress', label: 'In Progress' }
+        {value: 'completed', label: 'Completed'},
+        {value: 'scheduled', label: 'Scheduled'},
+        {value: 'in_progress', label: 'In Progress'}
     ];
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-        const { name, value } = e.target;
+        const {name, value} = e.target;
         setFormData(prev => ({
             ...prev,
             [name]: value
@@ -114,10 +114,10 @@ export default function AddMaintenanceModal({
     React.useEffect(() => {
         if (formData.maintenance_type && formData.maintenance_date && !formData.next_due_date) {
             const nextDue = calculateNextDueDate(formData.maintenance_type, formData.maintenance_date);
-            setFormData(prev => ({ ...prev, next_due_date: nextDue }));
+            setFormData(prev => ({...prev, next_due_date: nextDue}));
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [formData.maintenance_type, formData.maintenance_date]);
-
     const validateForm = () => {
         if (!formData.description.trim()) {
             setError('Maintenance description is required');
@@ -234,7 +234,7 @@ export default function AddMaintenanceModal({
                 <div className="flex items-center justify-between p-6 border-b">
                     <div className="flex items-center gap-3">
                         <div className="bg-blue-100 p-2 rounded-lg">
-                            <Wrench className="w-5 h-5 text-blue-600" />
+                            <Wrench className="w-5 h-5 text-blue-600"/>
                         </div>
                         <div>
                             <h2 className="text-xl font-semibold text-gray-900">Add Maintenance Record</h2>
@@ -246,7 +246,7 @@ export default function AddMaintenanceModal({
                         disabled={isLoading}
                         className="text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-50"
                     >
-                        <X className="w-5 h-5" />
+                        <X className="w-5 h-5"/>
                     </button>
                 </div>
 
@@ -254,8 +254,9 @@ export default function AddMaintenanceModal({
                 {showSuccess && (
                     <div className="p-6">
                         <div className="text-center">
-                            <div className="bg-green-100 p-3 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-                                <CheckCircle className="w-8 h-8 text-green-600" />
+                            <div
+                                className="bg-green-100 p-3 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                                <CheckCircle className="w-8 h-8 text-green-600"/>
                             </div>
                             <h3 className="text-lg font-semibold text-gray-900 mb-2">Maintenance Recorded!</h3>
                             <p className="text-gray-600">The maintenance record has been successfully added.</p>

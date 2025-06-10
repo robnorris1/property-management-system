@@ -1,7 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
     Calendar,
-    BadgePoundSterlingIcon,
     User,
     Wrench,
     ChevronDown,
@@ -48,11 +47,7 @@ export default function MaintenanceHistory({
     const [error, setError] = useState('');
     const [expandedRecords, setExpandedRecords] = useState<Set<number>>(new Set());
 
-    useEffect(() => {
-        fetchMaintenanceHistory();
-    }, [applianceId]);
-
-    const fetchMaintenanceHistory = async () => {
+    const fetchMaintenanceHistory = useCallback(async () => {
         try {
             setIsLoading(true);
             const response = await fetch(`/api/maintenance?appliance_id=${applianceId}`);
@@ -68,7 +63,11 @@ export default function MaintenanceHistory({
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [applianceId]);
+
+    useEffect(() => {
+        fetchMaintenanceHistory();
+    }, [fetchMaintenanceHistory]);
 
     const handleDelete = async (recordId: number) => {
         if (!confirm('Are you sure you want to delete this maintenance record?')) {
