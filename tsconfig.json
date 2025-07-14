@@ -23,9 +23,11 @@
     ],
     "baseUrl": ".",
     "paths": {
-      "@/*": [
-        "./src/*"
-      ]
+    "@/*": ["./src/*"],
+    "@/components/ui": ["./src/components/ui"],
+    "@/components/forms": ["./src/components/forms"],
+    "@/components/layout": ["./src/components/layout"],
+    "@/components/domain": ["./src/components/domain"]
     },
     "target": "ES2017"
   },

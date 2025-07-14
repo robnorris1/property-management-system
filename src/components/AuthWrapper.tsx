@@ -1,9 +1,9 @@
-// src/components/AuthWrapper.tsx
 'use client'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
-import { Loader2 } from 'lucide-react'
+import { LoadingSpinner } from '@/components/ui'
+import { Container } from '@mui/material'
 
 interface AuthWrapperProps {
     children: React.ReactNode
@@ -22,12 +22,17 @@ export default function AuthWrapper({ children, requireAuth = true }: AuthWrappe
 
     if (requireAuth && status === 'loading') {
         return (
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                <div className="text-center">
-                    <Loader2 className="w-8 h-8 animate-spin text-blue-600 mx-auto mb-4" />
-                    <p className="text-gray-600">Loading...</p>
-                </div>
-            </div>
+            <Container
+                maxWidth="sm"
+                sx={{
+                    minHeight: '100vh',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                }}
+            >
+                <LoadingSpinner message="Loading..." />
+            </Container>
         )
     }
 

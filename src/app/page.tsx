@@ -1,30 +1,34 @@
-// ===== UPDATE: src/app/page.tsx =====
-// Replace your existing page.tsx with this enhanced version:
-
 'use client';
 
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import {
-    Building2,
-    Wrench,
-    ArrowRight,
+    Container,
+    Grid,
+    Box,
+    Typography,
+    Tabs,
+    Tab
+} from '@mui/material';
+import {
+    Business,
+    Build,
     PoundSterling,
-    AlertTriangle,
-    Clock,
+    ReportProblem,
     Activity,
     BarChart3,
+    Calendar,
     CheckCircle,
-    Calendar
-} from 'lucide-react';
+    ArrowForward
+} from '@mui/icons-material';
 import { Property } from '@/types';
-import PropertyManagementWrapper from '@/components/PropertyManagementWrapper';
-import AddPropertyButton from '@/components/AddPropertyButton';
-import AuthWrapper from '@/components/AuthWrapper';
-import UserMenu from '@/components/UserMenu';
+import { Header, PropertyManagementWrapper } from '@/components/layout';
+import { AddPropertyButton } from '@/components/ui/AddPropertyButton/AddPropertyButton';
+import { StatCard } from '@/components/ui/StatCard/StatCard';
+import { Card, EmptyState, LoadingSpinner, ErrorMessage } from '@/components/ui';
+import { AuthWrapper } from '@/components/AuthWrapper';
 import { useSession } from 'next-auth/react';
 
-// Dashboard data interface
 interface DashboardData {
     overview: {
         total_properties: number;
@@ -72,7 +76,7 @@ export default function Home() {
     const [isLoading, setIsLoading] = useState(true);
     const [isDashboardLoading, setIsDashboardLoading] = useState(true);
     const [error, setError] = useState('');
-    const [activeTab, setActiveTab] = useState<'properties' | 'dashboard'>('dashboard');
+    const [activeTab, setActiveTab] = useState<'dashboard' | 'properties'>('dashboard');
 
     useEffect(() => {
         if (session) {
@@ -137,27 +141,14 @@ export default function Home() {
         });
     };
 
-    const getMaintenanceTypeColor = (type: string) => {
-        const colors = {
-            routine: 'bg-blue-100 text-blue-800',
-            repair: 'bg-red-100 text-red-800',
-            inspection: 'bg-yellow-100 text-yellow-800',
-            replacement: 'bg-purple-100 text-purple-800',
-            cleaning: 'bg-green-100 text-green-800',
-            upgrade: 'bg-indigo-100 text-indigo-800'
-        };
-        return colors[type as keyof typeof colors] || 'bg-gray-100 text-gray-800';
+    const handleTabChange = (event: React.SyntheticEvent, newValue: 'dashboard' | 'properties') => {
+        setActiveTab(newValue);
     };
 
     if (isLoading) {
         return (
             <AuthWrapper>
-                <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                    <div className="text-center">
-                        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                        <p className="text-gray-600">Loading your properties...</p>
-                    </div>
-                </div>
+                <LoadingSpinner message="Loading your properties..." />
             </AuthWrapper>
         );
     }
@@ -165,17 +156,12 @@ export default function Home() {
     if (error) {
         return (
             <AuthWrapper>
-                <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                    <div className="text-center">
-                        <p className="text-red-600 mb-4">{error}</p>
-                        <button
-                            onClick={() => fetchProperties()}
-                            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-                        >
-                            Try Again
-                        </button>
-                    </div>
-                </div>
+                <Container maxWidth="lg" sx={{ py: 4 }}>
+                    <ErrorMessage
+                        message={error}
+                        onRetry={fetchProperties}
+                    />
+                </Container>
             </AuthWrapper>
         );
     }
@@ -183,393 +169,398 @@ export default function Home() {
     return (
         <AuthWrapper>
             <PropertyManagementWrapper>
-                <main className="min-h-screen bg-gray-50">
-                    {/* Header */}
-                    <div className="bg-white shadow-sm border-b">
-                        <div className="max-w-7xl mx-auto px-6 py-8">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                                        Property Management System
-                                    </h1>
-                                    <p className="text-gray-600">
-                                        Manage your properties and track appliance maintenance
-                                    </p>
-                                </div>
-                                <div className="flex items-center gap-4">
-                                    <AddPropertyButton />
-                                    <UserMenu />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
+                    <Header
+                        actions={<AddPropertyButton />}
+                    />
 
-                    {/* Tab Navigation */}
-                    <div className="bg-white border-b">
-                        <div className="max-w-7xl mx-auto px-6">
-                            <nav className="flex space-x-8">
-                                <button
-                                    onClick={() => setActiveTab('dashboard')}
-                                    className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-                                        activeTab === 'dashboard'
-                                            ? 'border-blue-500 text-blue-600'
-                                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                                    }`}
-                                >
-                                    <div className="flex items-center gap-2">
-                                        <BarChart3 className="w-4 h-4" />
-                                        Dashboard
-                                    </div>
-                                </button>
-                                <button
-                                    onClick={() => setActiveTab('properties')}
-                                    className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
-                                        activeTab === 'properties'
-                                            ? 'border-blue-500 text-blue-600'
-                                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                                    }`}
-                                >
-                                    <div className="flex items-center gap-2">
-                                        <Building2 className="w-4 h-4" />
-                                        Properties ({properties.length})
-                                    </div>
-                                </button>
-                            </nav>
-                        </div>
-                    </div>
+                    <Container maxWidth="xl" sx={{ py: 3 }}>
+                        {/* Tab Navigation */}
+                        <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
+                            <Tabs value={activeTab} onChange={handleTabChange}>
+                                <Tab
+                                    label="Dashboard"
+                                    value="dashboard"
+                                    icon={<BarChart3 />}
+                                    iconPosition="start"
+                                />
+                                <Tab
+                                    label={`Properties (${properties.length})`}
+                                    value="properties"
+                                    icon={<Business />}
+                                    iconPosition="start"
+                                />
+                            </Tabs>
+                        </Box>
 
-                    <div className="max-w-7xl mx-auto p-6">
                         {/* Dashboard Tab */}
                         {activeTab === 'dashboard' && (
-                            <div className="space-y-6">
+                            <Box>
                                 {dashboardData && !isDashboardLoading ? (
-                                    <>
+                                    <Grid container spacing={3}>
                                         {/* Overview Cards */}
-                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                                            <div className="bg-white rounded-lg border p-6">
-                                                <div className="flex items-center justify-between">
-                                                    <div>
-                                                        <p className="text-sm font-medium text-gray-600">Total Properties</p>
-                                                        <p className="text-2xl font-bold text-gray-900">{dashboardData.overview.total_properties}</p>
-                                                    </div>
-                                                    <div className="bg-blue-100 p-3 rounded-full">
-                                                        <Building2 className="w-6 h-6 text-blue-600" />
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div className="bg-white rounded-lg border p-6">
-                                                <div className="flex items-center justify-between">
-                                                    <div>
-                                                        <p className="text-sm font-medium text-gray-600">Total Appliances</p>
-                                                        <p className="text-2xl font-bold text-gray-900">{dashboardData.overview.total_appliances}</p>
-                                                    </div>
-                                                    <div className="bg-green-100 p-3 rounded-full">
-                                                        <Wrench className="w-6 h-6 text-green-600" />
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div className="bg-white rounded-lg border p-6">
-                                                <div className="flex items-center justify-between">
-                                                    <div>
-                                                        <p className="text-sm font-medium text-gray-600">Total Maintenance Cost</p>
-                                                        <p className="text-2xl font-bold text-gray-900">{formatCurrency(dashboardData.overview.total_maintenance_cost)}</p>
-                                                    </div>
-                                                    <div className="bg-purple-100 p-3 rounded-full">
-                                                        <PoundSterling className="w-6 h-6 text-purple-600" />
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div className="bg-white rounded-lg border p-6">
-                                                <div className="flex items-center justify-between">
-                                                    <div>
-                                                        <p className="text-sm font-medium text-gray-600">Items Needing Attention</p>
-                                                        <p className="text-2xl font-bold text-orange-600">{dashboardData.overview.items_needing_attention}</p>
-                                                    </div>
-                                                    <div className="bg-orange-100 p-3 rounded-full">
-                                                        <AlertTriangle className="w-6 h-6 text-orange-600" />
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
+                                        <Grid item xs={12}>
+                                            <Grid container spacing={3}>
+                                                <Grid item xs={12} sm={6} md={3}>
+                                                    <StatCard
+                                                        title="Total Properties"
+                                                        value={dashboardData.overview.total_properties}
+                                                        icon={Business}
+                                                        color="primary"
+                                                    />
+                                                </Grid>
+                                                <Grid item xs={12} sm={6} md={3}>
+                                                    <StatCard
+                                                        title="Total Appliances"
+                                                        value={dashboardData.overview.total_appliances}
+                                                        icon={Build}
+                                                        color="secondary"
+                                                    />
+                                                </Grid>
+                                                <Grid item xs={12} sm={6} md={3}>
+                                                    <StatCard
+                                                        title="Total Maintenance Cost"
+                                                        value={formatCurrency(dashboardData.overview.total_maintenance_cost)}
+                                                        icon={PoundSterling}
+                                                        color="success"
+                                                    />
+                                                </Grid>
+                                                <Grid item xs={12} sm={6} md={3}>
+                                                    <StatCard
+                                                        title="Items Needing Attention"
+                                                        value={dashboardData.overview.items_needing_attention}
+                                                        icon={ReportProblem}
+                                                        color="warning"
+                                                    />
+                                                </Grid>
+                                            </Grid>
+                                        </Grid>
 
                                         {/* Secondary Stats */}
-                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                            <div className="bg-white rounded-lg border p-6">
-                                                <div className="flex items-center justify-between">
-                                                    <div>
-                                                        <p className="text-sm font-medium text-gray-600">Total Services</p>
-                                                        <p className="text-xl font-bold text-gray-900">{dashboardData.overview.total_maintenance_records}</p>
-                                                    </div>
-                                                    <Activity className="w-5 h-5 text-gray-400" />
-                                                </div>
-                                            </div>
+                                        <Grid item xs={12}>
+                                            <Grid container spacing={3}>
+                                                <Grid item xs={12} md={4}>
+                                                    <StatCard
+                                                        title="Total Services"
+                                                        value={dashboardData.overview.total_maintenance_records}
+                                                        icon={Activity}
+                                                        subtitle="Maintenance records"
+                                                    />
+                                                </Grid>
+                                                <Grid item xs={12} md={4}>
+                                                    <StatCard
+                                                        title="Average Service Cost"
+                                                        value={formatCurrency(dashboardData.overview.average_cost_per_maintenance)}
+                                                        icon={BarChart3}
+                                                        subtitle="Per maintenance"
+                                                    />
+                                                </Grid>
+                                                <Grid item xs={12} md={4}>
+                                                    <StatCard
+                                                        title="Upcoming Maintenance"
+                                                        value={dashboardData.overview.upcoming_maintenance_count}
+                                                        icon={Calendar}
+                                                        color="primary"
+                                                        subtitle="Next 30 days"
+                                                    />
+                                                </Grid>
+                                            </Grid>
+                                        </Grid>
 
-                                            <div className="bg-white rounded-lg border p-6">
-                                                <div className="flex items-center justify-between">
-                                                    <div>
-                                                        <p className="text-sm font-medium text-gray-600">Average Service Cost</p>
-                                                        <p className="text-xl font-bold text-gray-900">{formatCurrency(dashboardData.overview.average_cost_per_maintenance)}</p>
-                                                    </div>
-                                                    <BarChart3 className="w-5 h-5 text-gray-400" />
-                                                </div>
-                                            </div>
+                                        {/* Recent Maintenance & Properties Needing Attention */}
+                                        <Grid item xs={12}>
+                                            <Grid container spacing={3}>
+                                                <Grid item xs={12} lg={6}>
+                                                    <Card title="Recent Maintenance">
+                                                        {dashboardData.recent_maintenance.length === 0 ? (
+                                                            <EmptyState
+                                                                icon={Build}
+                                                                title="No recent maintenance"
+                                                                description="Maintenance records will appear here"
+                                                            />
+                                                        ) : (
+                                                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                                                                {dashboardData.recent_maintenance.slice(0, 5).map((record) => (
+                                                                    <Box
+                                                                        key={record.id}
+                                                                        sx={{
+                                                                            display: 'flex',
+                                                                            justifyContent: 'space-between',
+                                                                            alignItems: 'center',
+                                                                            p: 2,
+                                                                            bgcolor: 'background.paper',
+                                                                            borderRadius: 1,
+                                                                            border: 1,
+                                                                            borderColor: 'divider'
+                                                                        }}
+                                                                    >
+                                                                        <Box>
+                                                                            <Typography variant="body2" fontWeight={500}>
+                                                                                {record.appliance_name}
+                                                                            </Typography>
+                                                                            <Typography variant="caption" color="text.secondary">
+                                                                                {record.property_address}
+                                                                            </Typography>
+                                                                            <Typography variant="caption" display="block" color="text.secondary">
+                                                                                {formatDate(record.maintenance_date)}
+                                                                            </Typography>
+                                                                        </Box>
+                                                                        <Typography variant="body2" fontWeight={600}>
+                                                                            {formatCurrency(record.cost)}
+                                                                        </Typography>
+                                                                    </Box>
+                                                                ))}
+                                                            </Box>
+                                                        )}
+                                                    </Card>
+                                                </Grid>
 
-                                            <div className="bg-white rounded-lg border p-6">
-                                                <div className="flex items-center justify-between">
-                                                    <div>
-                                                        <p className="text-sm font-medium text-gray-600">Upcoming Maintenance</p>
-                                                        <p className="text-xl font-bold text-blue-600">{dashboardData.overview.upcoming_maintenance_count}</p>
-                                                    </div>
-                                                    <Calendar className="w-5 h-5 text-gray-400" />
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* Main Content Grid */}
-                                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                            {/* Recent Maintenance */}
-                                            <div className="bg-white rounded-lg border">
-                                                <div className="p-6 border-b">
-                                                    <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                                                        <Clock className="w-5 h-5" />
-                                                        Recent Maintenance
-                                                    </h3>
-                                                </div>
-                                                <div className="p-6">
-                                                    {dashboardData.recent_maintenance.length === 0 ? (
-                                                        <div className="text-center py-8">
-                                                            <Wrench className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                                                            <p className="text-gray-500">No recent maintenance records</p>
-                                                        </div>
-                                                    ) : (
-                                                        <div className="space-y-4">
-                                                            {dashboardData.recent_maintenance.slice(0, 5).map((record) => (
-                                                                <div key={record.id} className="flex items-start justify-between p-3 hover:bg-gray-50 rounded-lg">
-                                                                    <div className="flex-1">
-                                                                        <div className="flex items-center gap-2 mb-1">
-                                                                            <span className="font-medium text-gray-900">{record.appliance_name}</span>
-                                                                            <span className={`px-2 py-1 rounded-full text-xs ${getMaintenanceTypeColor(record.maintenance_type)}`}>
-                                                                                {record.maintenance_type}
-                                                                            </span>
-                                                                        </div>
-                                                                        <p className="text-sm text-gray-600">{record.property_address}</p>
-                                                                        <p className="text-xs text-gray-500">{formatDate(record.maintenance_date)}</p>
-                                                                    </div>
-                                                                    <div className="text-right">
-                                                                        <p className="font-semibold text-gray-900">{formatCurrency(record.cost)}</p>
-                                                                    </div>
-                                                                </div>
-                                                            ))}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </div>
-
-                                            {/* Properties Needing Attention */}
-                                            <div className="bg-white rounded-lg border">
-                                                <div className="p-6 border-b">
-                                                    <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                                                        <AlertTriangle className="w-5 h-5" />
-                                                        Properties Needing Attention
-                                                    </h3>
-                                                </div>
-                                                <div className="p-6">
-                                                    {dashboardData.properties_needing_attention.length === 0 ? (
-                                                        <div className="text-center py-8">
-                                                            <CheckCircle className="w-8 h-8 text-green-400 mx-auto mb-2" />
-                                                            <p className="text-green-600 font-medium">All properties up to date!</p>
-                                                            <p className="text-gray-500 text-sm">No overdue maintenance items</p>
-                                                        </div>
-                                                    ) : (
-                                                        <div className="space-y-4">
-                                                            {dashboardData.properties_needing_attention.map((property, index) => (
-                                                                <div key={index} className="flex items-center justify-between p-3 hover:bg-red-50 rounded-lg border border-red-200">
-                                                                    <div className="flex-1">
-                                                                        <p className="font-medium text-gray-900">{property.property_address}</p>
-                                                                        <div className="flex gap-3 text-sm mt-1">
-                                                                            {property.critical_issues_count > 0 && (
-                                                                                <span className="text-red-600">
-                                                                                    {property.critical_issues_count} critical issue{property.critical_issues_count !== 1 ? 's' : ''}
-                                                                                </span>
-                                                                            )}
-                                                                            {property.open_issues_count > 0 && (
-                                                                                <span className="text-orange-600">
-                                                                                    {property.open_issues_count} open issue{property.open_issues_count !== 1 ? 's' : ''}
-                                                                                </span>
-                                                                            )}
-                                                                            {property.overdue_maintenance_count > 0 && (
-                                                                                <span className="text-yellow-600">
-                                                                                    {property.overdue_maintenance_count} overdue
-                                                                                </span>
-                                                                            )}
-                                                                        </div>
-                                                                    </div>
-                                                                    <div className="text-right">
-                                                                        <p className="font-bold text-red-600">{property.total_issues}</p>
-                                                                        <p className="text-xs text-gray-500">total issues</p>
-                                                                    </div>
-                                                                </div>
-                                                            ))}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </div>
+                                                <Grid item xs={12} lg={6}>
+                                                    <Card title="Properties Needing Attention">
+                                                        {dashboardData.properties_needing_attention.length === 0 ? (
+                                                            <Box sx={{ textAlign: 'center', py: 4 }}>
+                                                                <CheckCircle sx={{ fontSize: 48, color: 'success.main', mb: 2 }} />
+                                                                <Typography variant="h6" color="success.main" gutterBottom>
+                                                                    All properties up to date!
+                                                                </Typography>
+                                                                <Typography variant="body2" color="text.secondary">
+                                                                    No overdue maintenance items
+                                                                </Typography>
+                                                            </Box>
+                                                        ) : (
+                                                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                                                                {dashboardData.properties_needing_attention.map((property, index) => (
+                                                                    <Box
+                                                                        key={index}
+                                                                        sx={{
+                                                                            display: 'flex',
+                                                                            justifyContent: 'space-between',
+                                                                            alignItems: 'center',
+                                                                            p: 2,
+                                                                            bgcolor: 'error.50',
+                                                                            borderRadius: 1,
+                                                                            border: 1,
+                                                                            borderColor: 'error.200'
+                                                                        }}
+                                                                    >
+                                                                        <Box>
+                                                                            <Typography variant="body2" fontWeight={500}>
+                                                                                {property.property_address}
+                                                                            </Typography>
+                                                                            <Box sx={{ display: 'flex', gap: 2, mt: 0.5 }}>
+                                                                                {property.critical_issues_count > 0 && (
+                                                                                    <Typography variant="caption" color="error.main">
+                                                                                        {property.critical_issues_count} critical issue{property.critical_issues_count !== 1 ? 's' : ''}
+                                                                                    </Typography>
+                                                                                )}
+                                                                                {property.open_issues_count > 0 && (
+                                                                                    <Typography variant="caption" color="warning.main">
+                                                                                        {property.open_issues_count} open issue{property.open_issues_count !== 1 ? 's' : ''}
+                                                                                    </Typography>
+                                                                                )}
+                                                                                {property.overdue_maintenance_count > 0 && (
+                                                                                    <Typography variant="caption" color="warning.main">
+                                                                                        {property.overdue_maintenance_count} overdue
+                                                                                    </Typography>
+                                                                                )}
+                                                                            </Box>
+                                                                        </Box>
+                                                                        <Typography variant="h6" color="error.main">
+                                                                            {property.total_issues}
+                                                                        </Typography>
+                                                                    </Box>
+                                                                ))}
+                                                            </Box>
+                                                        )}
+                                                    </Card>
+                                                </Grid>
+                                            </Grid>
+                                        </Grid>
 
                                         {/* Highest Maintenance Costs */}
                                         {dashboardData.expensive_appliances.length > 0 && (
-                                            <div className="bg-white rounded-lg border">
-                                                <div className="p-6 border-b">
-                                                    <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                                                        <PoundSterling className="w-5 h-5" />
-                                                        Highest Maintenance Costs
-                                                    </h3>
-                                                </div>
-                                                <div className="p-6">
-                                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                            <Grid item xs={12}>
+                                                <Card title="Highest Maintenance Costs">
+                                                    <Grid container spacing={2}>
                                                         {dashboardData.expensive_appliances.slice(0, 6).map((appliance, index) => (
-                                                            <div key={index} className="p-4 bg-gray-50 rounded-lg">
-                                                                <div className="flex items-center justify-between mb-2">
-                                                                    <h4 className="font-medium text-gray-900 truncate">{appliance.appliance_name}</h4>
-                                                                    <span className="font-bold text-red-600">{formatCurrency(appliance.total_maintenance_cost)}</span>
-                                                                </div>
-                                                                <p className="text-sm text-gray-600 truncate">{appliance.property_address}</p>
-                                                                <p className="text-xs text-gray-500">{appliance.maintenance_count} services</p>
-                                                            </div>
+                                                            <Grid item xs={12} md={6} lg={4} key={index}>
+                                                                <Box
+                                                                    sx={{
+                                                                        p: 2,
+                                                                        bgcolor: 'background.paper',
+                                                                        borderRadius: 1,
+                                                                        border: 1,
+                                                                        borderColor: 'divider'
+                                                                    }}
+                                                                >
+                                                                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                                                                        <Typography variant="body2" fontWeight={500} noWrap>
+                                                                            {appliance.appliance_name}
+                                                                        </Typography>
+                                                                        <Typography variant="body2" fontWeight={600} color="error.main">
+                                                                            {formatCurrency(appliance.total_maintenance_cost)}
+                                                                        </Typography>
+                                                                    </Box>
+                                                                    <Typography variant="caption" color="text.secondary" noWrap display="block">
+                                                                        {appliance.property_address}
+                                                                    </Typography>
+                                                                    <Typography variant="caption" color="text.secondary">
+                                                                        {appliance.maintenance_count} services
+                                                                    </Typography>
+                                                                </Box>
+                                                            </Grid>
                                                         ))}
-                                                    </div>
-                                                </div>
-                                            </div>
+                                                    </Grid>
+                                                </Card>
+                                            </Grid>
                                         )}
-                                    </>
+                                    </Grid>
                                 ) : (
-                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                                    <Grid container spacing={3}>
                                         {[1, 2, 3, 4].map(i => (
-                                            <div key={i} className="bg-white p-6 rounded-lg border animate-pulse">
-                                                <div className="h-4 bg-gray-300 rounded w-1/2 mb-2"></div>
-                                                <div className="h-8 bg-gray-300 rounded w-1/3"></div>
-                                            </div>
+                                            <Grid item xs={12} sm={6} md={3} key={i}>
+                                                <LoadingSpinner />
+                                            </Grid>
                                         ))}
-                                    </div>
+                                    </Grid>
                                 )}
-                            </div>
+                            </Box>
                         )}
 
                         {/* Properties Tab */}
                         {activeTab === 'properties' && (
-                            <div className="space-y-6">
+                            <Box>
                                 {properties.length === 0 ? (
-                                    <div className="bg-white rounded-lg shadow-sm border p-12 text-center">
-                                        <Building2 className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                                        <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                                            No properties yet
-                                        </h3>
-                                        <p className="text-gray-600 mb-6">
-                                            Add your first property to start managing appliances and maintenance.
-                                        </p>
-                                        <AddPropertyButton variant="primary" />
-                                    </div>
+                                    <EmptyState
+                                        icon={Business}
+                                        title="No properties yet"
+                                        description="Add your first property to start managing appliances and maintenance."
+                                        action={{
+                                            label: "Add First Property",
+                                            onClick: () => window.dispatchEvent(new CustomEvent('openAddPropertyModal'))
+                                        }}
+                                    />
                                 ) : (
                                     <>
-                                        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                                        <Grid container spacing={3}>
                                             {properties.map((property: Property) => (
-                                                <Link
-                                                    key={property.id}
-                                                    href={`/property/${property.id}`}
-                                                    className="block"
-                                                >
-                                                    <div className="bg-white rounded-lg shadow-sm border p-6 hover:shadow-md hover:border-blue-200 transition-all group">
-                                                        {/* Property Header */}
-                                                        <div className="flex items-start justify-between mb-4">
-                                                            <div className="flex-1">
-                                                                <h3 className="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
-                                                                    {property.address}
-                                                                </h3>
-                                                                <p className="text-sm text-gray-600 capitalize mt-1">
-                                                                    {property.property_type || 'Type not specified'}
-                                                                </p>
-                                                            </div>
-                                                            <ArrowRight className="w-5 h-5 text-gray-400 group-hover:text-blue-600 transition-colors" />
-                                                        </div>
+                                                <Grid item xs={12} md={6} lg={4} key={property.id}>
+                                                    <Card
+                                                        sx={{
+                                                            height: '100%',
+                                                            display: 'flex',
+                                                            flexDirection: 'column',
+                                                            transition: 'all 0.2s ease-in-out',
+                                                            '&:hover': {
+                                                                transform: 'translateY(-2px)',
+                                                                boxShadow: (theme) => theme.shadows[8],
+                                                            },
+                                                            cursor: 'pointer'
+                                                        }}
+                                                        component={Link}
+                                                        href={`/property/${property.id}`}
+                                                        style={{ textDecoration: 'none', color: 'inherit' }}
+                                                    >
+                                                        <Box sx={{ flex: 1 }}>
+                                                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                                                                <Box sx={{ flex: 1 }}>
+                                                                    <Typography variant="h6" gutterBottom>
+                                                                        {property.address}
+                                                                    </Typography>
+                                                                    <Typography variant="body2" color="text.secondary" sx={{ textTransform: 'capitalize' }}>
+                                                                        {property.property_type || 'Type not specified'}
+                                                                    </Typography>
+                                                                </Box>
+                                                                <ArrowForward sx={{ color: 'text.secondary' }} />
+                                                            </Box>
 
-                                                        {/* Property Stats */}
-                                                        <div className="space-y-3">
-                                                            <div className="flex items-center gap-2">
-                                                                <Wrench className="w-4 h-4 text-gray-400" />
-                                                                <span className="text-sm text-gray-600">
-                                                                    {property.appliance_count || '0'} appliance{property.appliance_count !== '1' ? 's' : ''}
-                                                                </span>
-                                                            </div>
+                                                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                                    <Build sx={{ fontSize: 16, color: 'text.secondary' }} />
+                                                                    <Typography variant="body2" color="text.secondary">
+                                                                        {property.appliance_count || '0'} appliance{property.appliance_count !== '1' ? 's' : ''}
+                                                                    </Typography>
+                                                                </Box>
 
-                                                            <div className="flex items-center gap-2">
-                                                                <Building2 className="w-4 h-4 text-gray-400" />
-                                                                <span className="text-sm text-gray-600">
-                                                                    Added {new Date(property.created_at).toLocaleDateString('en-GB', {
-                                                                    day: 'numeric',
-                                                                    month: 'short',
-                                                                    year: 'numeric'
-                                                                })}
-                                                                </span>
-                                                            </div>
-                                                        </div>
+                                                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                                                    <Business sx={{ fontSize: 16, color: 'text.secondary' }} />
+                                                                    <Typography variant="body2" color="text.secondary">
+                                                                        Added {formatDate(property.created_at)}
+                                                                    </Typography>
+                                                                </Box>
+                                                            </Box>
+                                                        </Box>
 
-                                                        {/* Quick Actions */}
-                                                        <div className="mt-4 pt-4 border-t">
-                                                            <div className="flex gap-2">
-                                                                <span className="flex-1 text-xs text-gray-500">
-                                                                    Click to view details
-                                                                </span>
-                                                                {property.appliance_count && parseInt(property.appliance_count) > 0 && (
-                                                                    <span className="text-xs text-blue-600 font-medium">
-                                                                        View appliances →
-                                                                    </span>
-                                                                )}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </Link>
+                                                        <Box sx={{ pt: 2, mt: 2, borderTop: 1, borderColor: 'divider' }}>
+                                                            <Typography variant="caption" color="text.secondary">
+                                                                Click to view details
+                                                            </Typography>
+                                                            {property.appliance_count && parseInt(property.appliance_count) > 0 && (
+                                                                <Typography variant="caption" color="primary.main" sx={{ ml: 2 }}>
+                                                                    View appliances →
+                                                                </Typography>
+                                                            )}
+                                                        </Box>
+                                                    </Card>
+                                                </Grid>
                                             ))}
-                                        </div>
+                                        </Grid>
 
                                         {/* Properties Summary */}
-                                        <div className="bg-white rounded-lg shadow-sm border p-6">
-                                            <h2 className="text-lg font-semibold text-gray-900 mb-4">Properties Summary</h2>
-                                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                                                <div className="text-center">
-                                                    <div className="text-2xl font-bold text-blue-600">
-                                                        {properties.length}
-                                                    </div>
-                                                    <div className="text-sm text-gray-600">Properties</div>
-                                                </div>
-                                                <div className="text-center">
-                                                    <div className="text-2xl font-bold text-green-600">
-                                                        {properties.reduce((sum, p) => sum + parseInt(p.appliance_count || '0'), 0)}
-                                                    </div>
-                                                    <div className="text-sm text-gray-600">Total Appliances</div>
-                                                </div>
-                                                <div className="text-center">
-                                                    <div className="text-2xl font-bold text-yellow-600">
-                                                        {properties.length > 0 ? Math.round(properties.reduce((sum, p) => sum + parseInt(p.appliance_count || '0'), 0) / properties.length) : 0}
-                                                    </div>
-                                                    <div className="text-sm text-gray-600">Avg per Property</div>
-                                                </div>
-                                                <div className="text-center">
-                                                    <div className="text-2xl font-bold text-purple-600">
-                                                        {properties.filter(p => parseInt(p.appliance_count || '0') > 0).length}
-                                                    </div>
-                                                    <div className="text-sm text-gray-600">Active Properties</div>
-                                                </div>
-                                            </div>
-                                        </div>
+                                        <Grid container spacing={3} sx={{ mt: 2 }}>
+                                            <Grid item xs={12}>
+                                                <Card title="Properties Summary">
+                                                    <Grid container spacing={3}>
+                                                        <Grid item xs={6} md={3}>
+                                                            <Box sx={{ textAlign: 'center' }}>
+                                                                <Typography variant="h4" color="primary.main" fontWeight={700}>
+                                                                    {properties.length}
+                                                                </Typography>
+                                                                <Typography variant="body2" color="text.secondary">
+                                                                    Properties
+                                                                </Typography>
+                                                            </Box>
+                                                        </Grid>
+                                                        <Grid item xs={6} md={3}>
+                                                            <Box sx={{ textAlign: 'center' }}>
+                                                                <Typography variant="h4" color="secondary.main" fontWeight={700}>
+                                                                    {properties.reduce((sum, p) => sum + parseInt(p.appliance_count || '0'), 0)}
+                                                                </Typography>
+                                                                <Typography variant="body2" color="text.secondary">
+                                                                    Total Appliances
+                                                                </Typography>
+                                                            </Box>
+                                                        </Grid>
+                                                        <Grid item xs={6} md={3}>
+                                                            <Box sx={{ textAlign: 'center' }}>
+                                                                <Typography variant="h4" color="warning.main" fontWeight={700}>
+                                                                    {properties.length > 0 ? Math.round(properties.reduce((sum, p) => sum + parseInt(p.appliance_count || '0'), 0) / properties.length) : 0}
+                                                                </Typography>
+                                                                <Typography variant="body2" color="text.secondary">
+                                                                    Avg per Property
+                                                                </Typography>
+                                                            </Box>
+                                                        </Grid>
+                                                        <Grid item xs={6} md={3}>
+                                                            <Box sx={{ textAlign: 'center' }}>
+                                                                <Typography variant="h4" color="success.main" fontWeight={700}>
+                                                                    {properties.filter(p => parseInt(p.appliance_count || '0') > 0).length}
+                                                                </Typography>
+                                                                <Typography variant="body2" color="text.secondary">
+                                                                    Active Properties
+                                                                </Typography>
+                                                            </Box>
+                                                        </Grid>
+                                                    </Grid>
+                                                </Card>
+                                            </Grid>
+                                        </Grid>
                                     </>
                                 )}
-                            </div>
+                            </Box>
                         )}
-                    </div>
-                </main>
+                    </Container>
+                </Box>
             </PropertyManagementWrapper>
         </AuthWrapper>
     );

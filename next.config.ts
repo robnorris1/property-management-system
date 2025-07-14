@@ -1,7 +1,15 @@
-import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
-  /* config options here */
+const nextConfig = {
+    modularizeImports: {
+        '@mui/icons-material': {
+            transform: '@mui/icons-material/{{member}}',
+        },
+        '@mui/material': {
+            transform: '@mui/material/{{member}}',
+        },
+    },
+    experimental: {
+        optimizePackageImports: ['@mui/material', '@mui/icons-material'],
+    },
 };
 
-export default nextConfig;
+module.exports = nextConfig;
