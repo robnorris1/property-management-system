@@ -45,26 +45,26 @@ const apiFetch = async <T>(
 }
 
 export const api = {
-    get: <T>(endpoint: string, params?: Record<string, any>): Promise<T> => {
+    get: <T>(endpoint: string, params?: Record<string, string>): Promise<T> => {
         const url = params ? `${endpoint}?${new URLSearchParams(params).toString()}` : endpoint
         return apiFetch<T>(url, { method: 'GET' })
     },
 
-    post: <T>(endpoint: string, data?: any): Promise<T> => {
+    post: <T>(endpoint: string, data?: unknown): Promise<T> => {
         return apiFetch<T>(endpoint, {
             method: 'POST',
             body: data ? JSON.stringify(data) : undefined,
         })
     },
 
-    put: <T>(endpoint: string, data?: any): Promise<T> => {
+    put: <T>(endpoint: string, data?: unknown): Promise<T> => {
         return apiFetch<T>(endpoint, {
             method: 'PUT',
             body: data ? JSON.stringify(data) : undefined,
         })
     },
 
-    patch: <T>(endpoint: string, data?: any): Promise<T> => {
+    patch: <T>(endpoint: string, data?: unknown): Promise<T> => {
         return apiFetch<T>(endpoint, {
             method: 'PATCH',
             body: data ? JSON.stringify(data) : undefined,
@@ -98,7 +98,7 @@ export const propertyApi = {
 export const applianceApi = {
     // Get appliances for a property
     getByProperty: (propertyId: number) =>
-        api.get<Appliance[]>('/api/appliances', { property_id: propertyId }),
+        api.get<Appliance[]>('/api/appliances', { property_id: propertyId.toString() }),
 
     // Get a specific appliance
     getById: (id: number) => api.get<Appliance>(`/api/appliances/${id}`),
@@ -123,8 +123,13 @@ export const applianceApi = {
 
 export const maintenanceApi = {
     // Get maintenance records
-    getAll: (params?: { appliance_id?: number; limit?: number }) =>
-        api.get<MaintenanceRecord[]>('/api/maintenance', params),
+    getAll: (params?: { appliance_id?: number; limit?: number }) => {
+        const stringParams = params ? {
+            ...(params.appliance_id && { appliance_id: params.appliance_id.toString() }),
+            ...(params.limit && { limit: params.limit.toString() })
+        } : undefined;
+        return api.get<MaintenanceRecord[]>('/api/maintenance', stringParams);
+    },
 
     // Get a specific maintenance record
     getById: (id: number) => api.get<MaintenanceRecord>(`/api/maintenance/${id}`),
@@ -155,8 +160,13 @@ export const maintenanceApi = {
 
 export const issueApi = {
     // Get issues
-    getAll: (params?: { appliance_id?: number; status?: string }) =>
-        api.get<Issue[]>('/api/issues', params),
+    getAll: (params?: { appliance_id?: number; status?: string }) => {
+        const stringParams = params ? {
+            ...(params.appliance_id && { appliance_id: params.appliance_id.toString() }),
+            ...(params.status && { status: params.status })
+        } : undefined;
+        return api.get<Issue[]>('/api/issues', stringParams);
+    },
 
     // Get a specific issue
     getById: (id: number) => api.get<Issue>(`/api/issues/${id}`),
@@ -199,7 +209,7 @@ export const authApi = {
 }
 
 // Higher-order function for API calls with loading states
-export const withLoading = <T extends any[], R>(
+export const withLoading = <T extends unknown[], R>(
     apiFunction: (...args: T) => Promise<R>
 ) => {
     return async (...args: T): Promise<{ data: R | null; error: string | null; isLoading: boolean }> => {
@@ -253,90 +263,14 @@ export const batchApiCalls = async <T>(
     }
 }
 
-// Type definitions (these should match your existing types)
-interface Property {
-    id: number
-    address: string
-    property_type: string | null
-    created_at: string
-    appliance_count?: string
-}
+// Import types from centralized location
+import type {
+    Property,
+    Appliance,
+    MaintenanceRecord,
+    Issue,
+    PropertyWithAppliances,
+    User,
+    DashboardData
+} from '@/types'
 
-interface Appliance {
-    id: number
-    property_id: number
-    name: string
-    type: string | null
-    installation_date: string | null
-    last_maintenance: string | null
-    status: string
-    created_at: string
-    total_maintenance_cost?: number
-    last_maintenance_cost?: number
-    maintenance_count?: number
-}
-
-interface MaintenanceRecord {
-    id: number
-    appliance_id: number
-    maintenance_type: string
-    description: string
-    cost: number | null
-    technician_name: string | null
-    technician_company: string | null
-    maintenance_date: string
-    next_due_date: string | null
-    notes: string | null
-    parts_replaced: string[] | null
-    warranty_until: string | null
-    status: string
-    created_at: string
-    updated_at: string
-    appliance_name?: string
-    property_address?: string
-}
-
-interface Issue {
-    id: number
-    appliance_id: number
-    title: string
-    description: string
-    urgency: string
-    status: string
-    reported_date: string
-    scheduled_date: string | null
-    resolved_date: string | null
-    resolution_notes: string | null
-    appliance_name: string
-    property_address: string
-    reported_by_name: string | null
-}
-
-interface PropertyWithAppliances {
-    property: Property
-    appliances: Appliance[]
-}
-
-interface DashboardData {
-    overview: {
-        total_properties: number
-        total_appliances: number
-        total_maintenance_records: number
-        total_maintenance_cost: number
-        average_cost_per_maintenance: number
-        overdue_maintenance_count: number
-        upcoming_maintenance_count: number
-        items_needing_attention: number
-    }
-    recent_maintenance: MaintenanceRecord[]
-    expensive_appliances: any[]
-    properties_needing_attention: any[]
-    monthly_spending: any[]
-}
-
-interface User {
-    id: string
-    email: string
-    name: string
-    role?: string
-}

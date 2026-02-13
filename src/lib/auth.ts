@@ -1,11 +1,13 @@
-// src/lib/auth.js
 import CredentialsProvider from 'next-auth/providers/credentials'
 import pool from '@/lib/db'
 import bcrypt from 'bcryptjs'
+import type { NextAuthOptions } from 'next-auth'
+import type { SessionStrategy } from 'next-auth'
+import type { JWT } from 'next-auth/jwt'
+import type { Session, User } from 'next-auth'
 
-export const authOptions = {
+export const authOptions: NextAuthOptions = {
     providers: [
-        // Email/Password Authentication
         CredentialsProvider({
             name: 'credentials',
             credentials: {
@@ -60,16 +62,16 @@ export const authOptions = {
     },
 
     callbacks: {
-        async jwt({ token, user }) {
+        async jwt({ token, user }: { token: JWT; user?: User }) {
             if (user) {
                 token.role = user.role
             }
             return token
         },
 
-        async session({ session, token }) {
+        async session({ session, token }: { session: Session; token: JWT }) {
             if (token) {
-                session.user.id = token.sub
+                session.user.id = token.sub || ''
                 session.user.role = token.role
             }
             return session
@@ -77,7 +79,7 @@ export const authOptions = {
     },
 
     session: {
-        strategy: 'jwt',
+        strategy: 'jwt' as SessionStrategy,
     },
 
     secret: process.env.NEXTAUTH_SECRET,

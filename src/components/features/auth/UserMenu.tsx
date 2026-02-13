@@ -1,4 +1,3 @@
-// src/components/UserMenu.tsx
 'use client'
 import { useSession, signOut } from 'next-auth/react'
 import { User, LogOut, Settings, ChevronDown } from 'lucide-react'

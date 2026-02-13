@@ -1,4 +1,3 @@
-// src/components/ReportIssueModal.tsx
 import React, { useState } from 'react';
 import {
     X,

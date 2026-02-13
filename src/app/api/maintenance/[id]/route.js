@@ -1,4 +1,3 @@
-// src/app/api/maintenance/[id]/route.js
 import pool from '@/lib/db';
 
 export async function PUT(request, { params }) {
@@ -26,7 +25,7 @@ export async function PUT(request, { params }) {
 
         for (const [key, value] of Object.entries(updateData)) {
             if (value !== undefined && value !== null) {
-                // Handle cost field with proper type conversion
+                // Handle cost field
                 if (key === 'cost') {
                     const numericCost = !isNaN(parseFloat(value)) ? parseFloat(value) : null;
                     updateFields.push(`${key} = $${paramCount}`);
@@ -46,7 +45,6 @@ export async function PUT(request, { params }) {
             );
         }
 
-        // Add updated_at timestamp
         updateFields.push(`updated_at = CURRENT_TIMESTAMP`);
         values.push(id);
 

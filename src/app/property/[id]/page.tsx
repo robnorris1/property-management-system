@@ -3,38 +3,14 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Wrench, Calendar, AlertTriangle, CheckCircle, Plus } from 'lucide-react'
-import AddApplianceModal from '@/components/AddApplianceModal';
-import EditApplianceModal from '@/components/EditApplianceModal';
-import AddMaintenanceModal from '@/components/AddMaintenanceModal';
-import MaintenanceHistory from '@/components/MaintenanceHistory';
-import ReportIssueModal from '@/components/ReportIssueModal';
-import IssuesList from '@/components/IssuesList';
+import AddApplianceModal from '@/components/features/maintenance/AddApplianceModal';
+import EditApplianceModal from '@/components/features/maintenance/EditApplianceModal';
+import AddMaintenanceModal from '@/components/features/maintenance/AddMaintenanceModal';
+import MaintenanceHistory from '@/components/features/maintenance/MaintenanceHistory';
+import ReportIssueModal from '@/components/features/maintenance/ReportIssueModal';
+import IssuesList from '@/components/features/maintenance/IssuesList';
 
-interface Property {
-    id: number;
-    address: string;
-    property_type: string | null;
-    created_at: string;
-}
-
-interface Appliance {
-    id: number;
-    property_id: number;
-    name: string;
-    type: string | null;
-    installation_date: string | null;
-    last_maintenance: string | null;
-    status: string;
-    created_at: string;
-    total_maintenance_cost?: number;
-    last_maintenance_cost?: number;
-    maintenance_count?: number;
-}
-
-interface PropertyWithAppliances {
-    property: Property;
-    appliances: Appliance[];
-}
+import type { Appliance, PropertyWithAppliances } from '@/types';
 
 function getStatusColor(status: string) {
     switch (status.toLowerCase()) {

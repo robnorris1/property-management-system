@@ -1,9 +1,15 @@
-// src/hooks/index.ts
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { api, propertyApi, applianceApi, maintenanceApi, issueApi, dashboardApi } from '@/lib/api'
-import { debounce, handleApiError } from '@/lib/utils'
+import { propertyApi, applianceApi, maintenanceApi, issueApi, dashboardApi } from '@/lib/api'
+import { handleApiError } from '@/lib/utils'
+import type {
+    Property,
+    Appliance,
+    MaintenanceRecord,
+    Issue,
+    PropertyWithAppliances,
+    DashboardData
+} from '@/types'
 
-// Generic loading state hook
 export const useLoading = (initialState: boolean = false) => {
     const [isLoading, setIsLoading] = useState(initialState)
 
@@ -22,10 +28,9 @@ export const useLoading = (initialState: boolean = false) => {
     return { isLoading, startLoading, stopLoading, withLoading }
 }
 
-// Generic API hook
 interface UseApiOptions {
     immediate?: boolean
-    onSuccess?: (data: any) => void
+    onSuccess?: (data: unknown) => void
     onError?: (error: string) => void
 }
 
@@ -188,7 +193,14 @@ export const useAppliances = (propertyId?: number) => {
         })
     }, [propertyId, withLoading])
 
-    const createAppliance = useCallback(async (applianceData: any) => {
+    const createAppliance = useCallback(async (applianceData: {
+        property_id: number;
+        name: string;
+        type?: string;
+        installation_date?: string;
+        last_maintenance?: string;
+        status?: string;
+    }) => {
         try {
             const newAppliance = await applianceApi.create(applianceData)
             setAppliances(prev => [newAppliance, ...prev])
@@ -263,7 +275,20 @@ export const useMaintenance = (applianceId?: number) => {
         })
     }, [applianceId, withLoading])
 
-    const createMaintenanceRecord = useCallback(async (maintenanceData: any) => {
+    const createMaintenanceRecord = useCallback(async (maintenanceData: {
+        appliance_id: number;
+        maintenance_type: string;
+        description: string;
+        cost?: number;
+        technician_name?: string;
+        technician_company?: string;
+        maintenance_date: string;
+        next_due_date?: string;
+        notes?: string;
+        parts_replaced?: string[];
+        warranty_until?: string;
+        status?: string;
+    }) => {
         try {
             const newRecord = await maintenanceApi.create(maintenanceData)
             setRecords(prev => [newRecord, ...prev])
@@ -324,7 +349,7 @@ export const useIssues = (applianceId?: number, status?: string) => {
         return withLoading(async () => {
             try {
                 setError(null)
-                const params: any = {}
+                const params: { appliance_id?: number; status?: string } = {}
                 if (applianceId) params.appliance_id = applianceId
                 if (status) params.status = status
 
@@ -339,7 +364,13 @@ export const useIssues = (applianceId?: number, status?: string) => {
         })
     }, [applianceId, status, withLoading])
 
-    const createIssue = useCallback(async (issueData: any) => {
+    const createIssue = useCallback(async (issueData: {
+        appliance_id: number;
+        title: string;
+        description: string;
+        urgency?: string;
+        reported_date?: string;
+    }) => {
         try {
             const newIssue = await issueApi.create(issueData)
             setIssues(prev => [newIssue, ...prev])
@@ -443,14 +474,14 @@ interface UseFormOptions<T> {
     onSubmit?: (values: T) => Promise<void> | void
 }
 
-export const useForm = <T extends Record<string, any>>(options: UseFormOptions<T>) => {
+export const useForm = <T extends Record<string, unknown>>(options: UseFormOptions<T>) => {
     const { initialValues, validate, onSubmit } = options
     const [values, setValues] = useState<T>(initialValues)
     const [errors, setErrors] = useState<Partial<Record<keyof T, string>>>({})
     const [touched, setTouched] = useState<Partial<Record<keyof T, boolean>>>({})
     const { isLoading, withLoading } = useLoading(false)
 
-    const setValue = useCallback((name: keyof T, value: any) => {
+    const setValue = useCallback((name: keyof T, value: unknown) => {
         setValues(prev => ({ ...prev, [name]: value }))
 
         // Clear error when user starts typing
@@ -494,7 +525,12 @@ export const useForm = <T extends Record<string, any>>(options: UseFormOptions<T
         }
 
         if (onSubmit) {
-            await withLoading(() => onSubmit(values))
+            await withLoading(async () => {
+                const result = onSubmit(values)
+                if (result instanceof Promise) {
+                    await result
+                }
+            })
         }
     }, [validateForm, onSubmit, withLoading, values])
 
@@ -502,7 +538,7 @@ export const useForm = <T extends Record<string, any>>(options: UseFormOptions<T
         name: name as string,
         value: values[name] || '',
         onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-            setValue(name, e.target.value)
+            setValue(name, e.target.value as T[keyof T])
         },
         onBlur: () => setFieldTouched(name, true),
     }), [values, setValue, setFieldTouched])
@@ -597,11 +633,11 @@ export const useDebounce = <T>(value: T, delay: number): T => {
 
 // Previous value hook
 export const usePrevious = <T>(value: T): T | undefined => {
-    const ref = useRef<T>()
+    const ref = useRef<T>(value)
 
     useEffect(() => {
         ref.current = value
-    })
+    }, [value])
 
     return ref.current
 }
@@ -678,83 +714,3 @@ export const useWindowSize = () => {
     return windowSize
 }
 
-// Types (these should match your existing types)
-interface Property {
-    id: number
-    address: string
-    property_type: string | null
-    created_at: string
-    appliance_count?: string
-}
-
-interface Appliance {
-    id: number
-    property_id: number
-    name: string
-    type: string | null
-    installation_date: string | null
-    last_maintenance: string | null
-    status: string
-    created_at: string
-    total_maintenance_cost?: number
-    last_maintenance_cost?: number
-    maintenance_count?: number
-}
-
-interface MaintenanceRecord {
-    id: number
-    appliance_id: number
-    maintenance_type: string
-    description: string
-    cost: number | null
-    technician_name: string | null
-    technician_company: string | null
-    maintenance_date: string
-    next_due_date: string | null
-    notes: string | null
-    parts_replaced: string[] | null
-    warranty_until: string | null
-    status: string
-    created_at: string
-    updated_at: string
-    appliance_name?: string
-    property_address?: string
-}
-
-interface Issue {
-    id: number
-    appliance_id: number
-    title: string
-    description: string
-    urgency: string
-    status: string
-    reported_date: string
-    scheduled_date: string | null
-    resolved_date: string | null
-    resolution_notes: string | null
-    appliance_name: string
-    property_address: string
-    reported_by_name: string | null
-}
-
-interface PropertyWithAppliances {
-    property: Property
-    appliances: Appliance[]
-}
-
-interface DashboardData {
-    overview: {
-        total_properties: number
-        total_appliances: number
-        total_maintenance_records: number
-        total_maintenance_cost: number
-        average_cost_per_maintenance: number
-        overdue_maintenance_count: number
-        upcoming_maintenance_count: number
-        items_needing_attention: number
-    }
-    recent_maintenance: MaintenanceRecord[]
-    expensive_appliances: any[]
-    properties_needing_attention: any[]
-    monthly_spending: any[]
-}

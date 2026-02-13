@@ -1,8 +1,10 @@
 import pool from '@/lib/db';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import type { DashboardData } from '@/types';
+import { NextRequest } from 'next/server';
 
-export async function GET(request) {
+export async function GET(request: NextRequest) {
     try {
         const session = await getServerSession(authOptions);
         if (!session?.user?.id) {
@@ -10,14 +12,14 @@ export async function GET(request) {
         }
 
         const url = new URL(request.url);
-        const timeRange = url.searchParams.get('timeRange') || '6months';
+        const timeRange = url.searchParams.get('timeRange') as '3months' | '6months' | '12months' || '6months';
 
         // Calculate date range
         const now = new Date();
         const monthsBack = timeRange === '3months' ? 3 : timeRange === '6months' ? 6 : 12;
         const startDate = new Date(now.getFullYear(), now.getMonth() - monthsBack, 1);
 
-        // 1. Overview Statistics - FIXED to handle NULL costs properly and include issues
+        // 1. Overview Statistics
         const overviewQuery = await pool.query(`
             WITH property_stats AS (
                 SELECT COUNT(*) as total_properties
@@ -107,7 +109,7 @@ export async function GET(request) {
             LIMIT 10
         `, [session.user.id]);
 
-        // 3. Most Expensive Appliances - FIXED to only count records with costs
+        // 3. Most Expensive Appliances
         const expensiveAppliancesQuery = await pool.query(`
             SELECT 
                 a.name as appliance_name,
@@ -125,7 +127,7 @@ export async function GET(request) {
             LIMIT 10
         `, [session.user.id, startDate]);
 
-        // 4. Properties Needing Attention - Include properties with open issues
+        // 4. Properties Needing Attention
         const propertiesNeedingAttentionQuery = await pool.query(`
             WITH property_issues AS (
                 SELECT 
@@ -153,7 +155,7 @@ export async function GET(request) {
             LIMIT 5
         `, [session.user.id]);
 
-        // 5. Monthly Spending - FIXED GROUP BY
+        // 5. Monthly Spending
         const monthlySpendingQuery = await pool.query(`
             SELECT 
                 TO_CHAR(DATE_TRUNC('month', mr.maintenance_date), 'Mon YYYY') as month,
@@ -224,12 +226,13 @@ export async function GET(request) {
             }))
         };
 
-        return Response.json(response);
+        return Response.json(response as DashboardData);
 
     } catch (error) {
         console.error('Dashboard API error:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         return Response.json(
-            { error: 'Failed to fetch dashboard data', details: error.message },
+            { error: 'Failed to fetch dashboard data', details: errorMessage },
             { status: 500 }
         );
     }

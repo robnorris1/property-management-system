@@ -1,4 +1,3 @@
-// src/app/api/issues/route.js
 import pool from '@/lib/db';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';

@@ -254,7 +254,7 @@ export const safeLocalStorage = {
 }
 
 // Debounce utility
-export const debounce = <T extends (...args: any[]) => any>(
+export const debounce = <T extends (...args: unknown[]) => unknown>(
     func: T,
     wait: number
 ): (...args: Parameters<T>) => void => {
@@ -323,6 +323,6 @@ export const handleApiError = (error: unknown): string => {
     return 'An unexpected error occurred'
 }
 
-export const isApiError = (error: any): error is { error: string } => {
-    return error && typeof error === 'object' && 'error' in error
+export const isApiError = (error: unknown): error is { error: string } => {
+    return Boolean(error && typeof error === 'object' && 'error' in error)
 }

@@ -1,4 +1,3 @@
-// src/components/IssuesList.tsx
 import { useState, useEffect } from 'react';
 import {
     AlertTriangle,

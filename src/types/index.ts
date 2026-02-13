@@ -1,4 +1,3 @@
-// src/types/index.ts - Updated with maintenance tracking
 export interface Property {
     id: number;
     address: string;
@@ -16,7 +15,6 @@ export interface Appliance {
     last_maintenance: string | null;
     status: string;
     created_at: string;
-    // New maintenance tracking fields
     total_maintenance_cost?: number;
     last_maintenance_cost?: number;
     maintenance_count?: number;
@@ -38,7 +36,6 @@ export interface MaintenanceRecord {
     status: 'scheduled' | 'in_progress' | 'completed' | 'cancelled';
     created_at: string;
     updated_at: string;
-    // Join fields when fetching with appliance/property info
     appliance_name?: string;
     property_address?: string;
 }
@@ -102,4 +99,59 @@ export interface AddMaintenanceFormData {
 
 export interface EditMaintenanceFormData extends AddMaintenanceFormData {
     id: number;
+}
+
+export interface Issue {
+    id: number;
+    appliance_id: number;
+    title: string;
+    description: string;
+    urgency: string;
+    status: string;
+    reported_date: string;
+    scheduled_date: string | null;
+    resolved_date: string | null;
+    resolution_notes: string | null;
+    appliance_name: string;
+    property_address: string;
+    reported_by_name: string | null;
+}
+
+export interface User {
+    id: string;
+    email: string;
+    name: string;
+    role?: string;
+}
+
+export interface DashboardData {
+    overview: {
+        total_properties: number;
+        total_appliances: number;
+        total_maintenance_records: number;
+        total_maintenance_cost: number;
+        average_cost_per_maintenance: number;
+        overdue_maintenance_count: number;
+        upcoming_maintenance_count: number;
+        items_needing_attention: number;
+    };
+    recent_maintenance: MaintenanceRecord[];
+    expensive_appliances: Array<{
+        appliance_name: string;
+        property_address: string;
+        total_maintenance_cost: number;
+        maintenance_count: number;
+    }>;
+    properties_needing_attention: Array<{
+        property_address: string;
+        open_issues_count: number;
+        critical_issues_count: number;
+        overdue_maintenance_count: number;
+        total_issues: number;
+    }>;
+    monthly_spending: Array<{
+        month: string;
+        total_cost: number;
+        maintenance_count: number;
+    }>;
 }

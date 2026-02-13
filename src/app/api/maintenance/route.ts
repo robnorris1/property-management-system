@@ -1,6 +1,7 @@
 import pool from '@/lib/db';
+import { NextRequest } from 'next/server';
 
-export async function POST(request) {
+export async function POST(request: NextRequest) {
     const client = await pool.connect();
 
     try {
@@ -79,7 +80,7 @@ export async function POST(request) {
             status || 'completed'
         ]);
 
-        // Update appliance totals - THIS IS THE KEY FIX
+        // Update appliance totals
         await client.query(`
             UPDATE appliances
             SET
@@ -109,11 +110,12 @@ export async function POST(request) {
     }
 }
 
-export async function GET(request) {
+export async function GET(request: NextRequest) {
     try {
         const url = new URL(request.url);
         const applianceId = url.searchParams.get('appliance_id');
-        const limit = url.searchParams.get('limit') || 50;
+        const limitParam = url.searchParams.get('limit');
+        const limit = limitParam ? parseInt(limitParam, 10) : 50;
 
         let query = `
             SELECT 
@@ -125,7 +127,7 @@ export async function GET(request) {
             JOIN properties p ON a.property_id = p.id
         `;
 
-        let params = [];
+        const params: (string | number)[] = [];
 
         if (applianceId) {
             query += ' WHERE mr.appliance_id = $1';
@@ -137,7 +139,7 @@ export async function GET(request) {
         if (limit) {
             const limitIndex = params.length + 1;
             query += ` LIMIT $${limitIndex}`;
-            params.push(limit);
+            params.push(limit.toString());
         }
 
         const result = await pool.query(query, params);

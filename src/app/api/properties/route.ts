@@ -1,9 +1,9 @@
 import pool from '@/lib/db';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import { NextRequest } from 'next/server';
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export async function GET(request) {
+export async function GET() {
     try {
         // Get user session
         const session = await getServerSession(authOptions);
@@ -30,7 +30,7 @@ export async function GET(request) {
     }
 }
 
-export async function POST(request) {
+export async function POST(request: NextRequest) {
     try {
         // Get user session
         const session = await getServerSession(authOptions);
@@ -39,9 +39,9 @@ export async function POST(request) {
             return Response.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const { address, property_type } = await request.json();
+        const { address, property_type }: { address: string; property_type?: string } = await request.json();
 
-        if (!address) {
+        if (!address?.trim()) {
             return Response.json({ error: 'Address is required' }, { status: 400 });
         }
 

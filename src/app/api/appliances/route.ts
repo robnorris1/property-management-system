@@ -1,9 +1,17 @@
-// src/app/api/appliances/route.js
 import pool from '@/lib/db';
+import type { Appliance } from '@/types';
+import { NextRequest } from 'next/server';
 
-export async function POST(request) {
+export async function POST(request: NextRequest) {
     try {
-        const { property_id, name, type, installation_date, last_maintenance, status } = await request.json();
+        const { property_id, name, type, installation_date, last_maintenance, status }: {
+            property_id: number;
+            name: string;
+            type?: string;
+            installation_date?: string;
+            last_maintenance?: string;
+            status?: string;
+        } = await request.json();
 
         // Validate required fields
         if (!property_id || !name) {
@@ -46,7 +54,7 @@ export async function POST(request) {
             status || 'working'
         ]);
 
-        return Response.json(result.rows[0], { status: 201 });
+        return Response.json(result.rows[0] as Appliance, { status: 201 });
 
     } catch (error) {
         console.error('Database error:', error);

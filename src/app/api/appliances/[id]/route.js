@@ -1,4 +1,3 @@
-// src/app/api/appliances/[id]/route.js
 import pool from '@/lib/db';
 
 export async function PUT(request, { params }) {

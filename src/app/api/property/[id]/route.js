@@ -17,7 +17,7 @@ export async function GET(request, { params }) {
             );
         }
 
-        // Get all appliances for this property WITH maintenance cost data
+        // Get all appliances for this property with maintenance cost data
         const appliancesResult = await pool.query(`
             SELECT 
                 id,
