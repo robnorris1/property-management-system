@@ -80,20 +80,65 @@ export async function POST(request: NextRequest) {
             status || 'completed'
         ]);
 
-        // Update appliance totals
-        await client.query(`
-            UPDATE appliances
-            SET
-                last_maintenance = $1,
-                last_maintenance_cost = COALESCE($2, 0),
-                maintenance_count = maintenance_count + 1,
-                total_maintenance_cost = COALESCE(total_maintenance_cost, 0) + COALESCE($2, 0)
-            WHERE id = $3
-        `, [
-            maintenance_date,
-            numericCost,
-            appliance_id
-        ]);
+        // Update appliance totals and status if repair is completed
+        const shouldUpdateStatus = (maintenance_type === 'repair' || maintenance_type === 'replacement') && 
+                                  (status === 'completed' || !status);
+        
+        if (shouldUpdateStatus) {
+            // Update appliance totals and set status to working when repair is completed
+            await client.query(`
+                UPDATE appliances
+                SET
+                    last_maintenance = $1,
+                    last_maintenance_cost = COALESCE($2, 0),
+                    maintenance_count = maintenance_count + 1,
+                    total_maintenance_cost = COALESCE(total_maintenance_cost, 0) + COALESCE($2, 0),
+                    status = 'working'
+                WHERE id = $3
+            `, [
+                maintenance_date,
+                numericCost,
+                appliance_id
+            ]);
+
+            // Auto-resolve any open issues for this appliance when repair is completed
+            await client.query(`
+                UPDATE issues
+                SET 
+                    status = 'resolved',
+                    resolved_date = $1,
+                    resolution_notes = COALESCE(resolution_notes, '') || 
+                        CASE 
+                            WHEN resolution_notes IS NOT NULL AND resolution_notes != '' 
+                            THEN E'\n\nAuto-resolved: ' 
+                            ELSE 'Auto-resolved: ' 
+                        END || $2,
+                    maintenance_record_id = $3,
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE appliance_id = $4 
+                AND status IN ('open', 'scheduled', 'in_progress')
+            `, [
+                maintenance_date,
+                `${maintenance_type} maintenance completed - ${description}`,
+                result.rows[0].id,
+                appliance_id
+            ]);
+        } else {
+            // Update appliance totals only
+            await client.query(`
+                UPDATE appliances
+                SET
+                    last_maintenance = $1,
+                    last_maintenance_cost = COALESCE($2, 0),
+                    maintenance_count = maintenance_count + 1,
+                    total_maintenance_cost = COALESCE(total_maintenance_cost, 0) + COALESCE($2, 0)
+                WHERE id = $3
+            `, [
+                maintenance_date,
+                numericCost,
+                appliance_id
+            ]);
+        }
 
         await client.query('COMMIT');
         return Response.json(result.rows[0], { status: 201 });

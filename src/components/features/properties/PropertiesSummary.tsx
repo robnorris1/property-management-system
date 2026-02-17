@@ -17,19 +17,19 @@ export default function PropertiesSummary({ properties }: PropertiesSummaryProps
                 </div>
                 <div className="text-center">
                     <div className="text-2xl font-bold text-green-600">
-                        {properties.reduce((sum, p) => sum + parseInt(p.appliance_count || '0'), 0)}
+                        {properties.reduce((sum, p) => sum + (p.appliance_count || 0), 0)}
                     </div>
                     <div className="text-sm text-gray-600">Total Appliances</div>
                 </div>
                 <div className="text-center">
                     <div className="text-2xl font-bold text-yellow-600">
-                        {properties.length > 0 ? Math.round(properties.reduce((sum, p) => sum + parseInt(p.appliance_count || '0'), 0) / properties.length) : 0}
+                        {properties.length > 0 ? Math.round(properties.reduce((sum, p) => sum + (p.appliance_count || 0), 0) / properties.length) : 0}
                     </div>
                     <div className="text-sm text-gray-600">Avg per Property</div>
                 </div>
                 <div className="text-center">
                     <div className="text-2xl font-bold text-purple-600">
-                        {properties.filter(p => parseInt(p.appliance_count || '0') > 0).length}
+                        {properties.filter(p => (p.appliance_count || 0) > 0).length}
                     </div>
                     <div className="text-sm text-gray-600">Active Properties</div>
                 </div>

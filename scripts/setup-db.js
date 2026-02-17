@@ -145,6 +145,12 @@ async function setupDatabase() {
                 ADD COLUMN IF NOT EXISTS user_id INTEGER REFERENCES users(id);
         `);
 
+        // Add monthly_rent column to existing properties table
+        await pool.query(`
+            ALTER TABLE properties
+                ADD COLUMN IF NOT EXISTS monthly_rent DECIMAL(10,2);
+        `);
+
         // Create properties table if it doesn't exist (for new setups)
         await pool.query(`
             CREATE TABLE IF NOT EXISTS properties
@@ -166,6 +172,7 @@ async function setupDatabase() {
             (
                 id
             ),
+                monthly_rent DECIMAL(10,2),
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 );
         `);
@@ -340,6 +347,53 @@ async function setupDatabase() {
                 );
         `);
 
+        // Create rent_payments table for tracking rent collection
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS rent_payments
+            (
+                id
+                SERIAL
+                PRIMARY
+                KEY,
+                property_id
+                INTEGER
+                NOT
+                NULL
+                REFERENCES
+                properties
+            (
+                id
+            ) ON DELETE CASCADE,
+                amount DECIMAL
+            (
+                10,
+                2
+            ) NOT NULL,
+                payment_date DATE NOT NULL DEFAULT CURRENT_DATE,
+                due_date DATE NOT NULL,
+                payment_method VARCHAR
+            (
+                50
+            ), -- cash, check, transfer, online, etc.
+                reference_number VARCHAR
+            (
+                100
+            ), -- check number, transaction id, etc.
+                notes TEXT,
+                status VARCHAR
+            (
+                20
+            ) NOT NULL DEFAULT 'paid', -- paid, late, partial
+                late_fee_amount DECIMAL
+            (
+                10,
+                2
+            ) DEFAULT 0,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                );
+        `);
+
         // Add indexes for better performance
         await pool.query(`
             CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
@@ -375,6 +429,21 @@ async function setupDatabase() {
         await pool.query(`
             CREATE INDEX IF NOT EXISTS idx_maintenance_photos_maintenance_record_id
                 ON maintenance_photos(maintenance_record_id);
+        `);
+
+        await pool.query(`
+            CREATE INDEX IF NOT EXISTS idx_rent_payments_property_id
+                ON rent_payments(property_id);
+        `);
+
+        await pool.query(`
+            CREATE INDEX IF NOT EXISTS idx_rent_payments_due_date
+                ON rent_payments(due_date);
+        `);
+
+        await pool.query(`
+            CREATE INDEX IF NOT EXISTS idx_rent_payments_payment_date
+                ON rent_payments(payment_date);
         `);
 
         // Create trigger function for updating updated_at timestamp
@@ -421,6 +490,7 @@ async function setupDatabase() {
         console.log('✅ User authentication tables added!');
         console.log('✅ NextAuth.js tables configured!');
         console.log('✅ Maintenance system tables added!');
+        console.log('✅ Rent tracking system added!');
         console.log('✅ Indexes created for performance!');
         console.log('✅ Triggers and views created!');
         console.log('');
@@ -429,6 +499,7 @@ async function setupDatabase() {
         console.log('   📍 User-specific properties and appliances');
         console.log('   🔧 Comprehensive maintenance logging');
         console.log('   💰 Cost tracking and analytics');
+        console.log('   🏠 Rent collection and payment tracking');
         console.log('   🔒 Secure data isolation between users');
         console.log('   📊 Performance optimized queries');
 

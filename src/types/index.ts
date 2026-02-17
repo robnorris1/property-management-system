@@ -2,8 +2,9 @@ export interface Property {
     id: number;
     address: string;
     property_type: string | null;
+    monthly_rent?: number | null;
     created_at: string;
-    appliance_count?: string; // From JOIN query, comes as string
+    appliance_count?: number; // Now consistently returned as number from API
 }
 
 export interface Appliance {
@@ -154,4 +155,64 @@ export interface DashboardData {
         total_cost: number;
         maintenance_count: number;
     }>;
+}
+
+// Rent tracking interfaces
+export interface RentPayment {
+    id: number;
+    property_id: number;
+    amount: number;
+    payment_date: string;
+    due_date: string;
+    payment_method: string | null;
+    reference_number: string | null;
+    notes: string | null;
+    status: 'paid' | 'late' | 'partial';
+    late_fee_amount: number;
+    created_at: string;
+    updated_at: string;
+    property_address?: string;
+}
+
+export interface RentPaymentFormData {
+    amount: string;
+    payment_date: string;
+    due_date: string;
+    payment_method: string;
+    reference_number: string;
+    notes: string;
+    status: string;
+    late_fee_amount: string;
+}
+
+export interface PropertyRentStatus {
+    property_id: number;
+    property_address: string;
+    monthly_rent: number | null;
+    last_payment_date: string | null;
+    last_payment_amount: number | null;
+    total_collected_this_month: number;
+    total_collected_this_year: number;
+    days_since_last_payment: number | null;
+    rent_status: 'current' | 'overdue' | 'not_set' | 'no_payments';
+}
+
+export interface PropertyAnalytics {
+    property_id: number;
+    property_address: string;
+    monthly_rent: number | null;
+    total_rent_collected: number;
+    total_late_fees: number;
+    months_with_payments: number;
+    expected_yearly_rent: number;
+    last_payment_date: string | null;
+    total_maintenance_cost: number;
+    maintenance_count: number;
+    recent_maintenance_cost: number;
+    maintenance_to_rent_ratio: number | null;
+    net_income: number;
+    occupancy_rate: number | null;
+    maintenance_category: 'low_maintenance' | 'medium_maintenance' | 'high_maintenance' | 'no_data';
+    performance_rating: 'excellent' | 'good' | 'fair' | 'poor' | 'no_data';
+    payment_status: 'current' | 'late' | 'overdue' | 'no_payments';
 }

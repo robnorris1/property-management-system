@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Building2, BarChart3 } from 'lucide-react';
+import { Building2, BarChart3, TrendingUp } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 
 import type { Property, DashboardData } from '@/types';
@@ -20,6 +20,9 @@ import PropertiesGrid from '@/components/features/properties/PropertiesGrid';
 import PropertiesSummary from '@/components/features/properties/PropertiesSummary';
 import PropertiesEmptyState from '@/components/features/properties/PropertiesEmptyState';
 
+import PropertyPerformanceDashboard from '@/components/features/analytics/PropertyPerformanceDashboard';
+import MonthlyPerformanceSummary from '@/components/features/analytics/MonthlyPerformanceSummary';
+
 export default function Home() {
     const { data: session } = useSession();
     const [properties, setProperties] = useState<Property[]>([]);
@@ -27,7 +30,7 @@ export default function Home() {
     const [isLoading, setIsLoading] = useState(true);
     const [isDashboardLoading, setIsDashboardLoading] = useState(true);
     const [error, setError] = useState('');
-    const [activeTab, setActiveTab] = useState<'properties' | 'dashboard'>('dashboard');
+    const [activeTab, setActiveTab] = useState<'properties' | 'dashboard' | 'analytics'>('dashboard');
 
     useEffect(() => {
         if (session) {
@@ -159,6 +162,19 @@ export default function Home() {
                                         Properties ({properties.length})
                                     </div>
                                 </button>
+                                <button
+                                    onClick={() => setActiveTab('analytics')}
+                                    className={`py-4 px-1 border-b-2 font-medium text-sm transition-colors ${
+                                        activeTab === 'analytics'
+                                            ? 'border-blue-500 text-blue-600'
+                                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                    }`}
+                                >
+                                    <div className="flex items-center gap-2">
+                                        <TrendingUp className="w-4 h-4" />
+                                        Analytics
+                                    </div>
+                                </button>
                             </nav>
                         </div>
                     </div>
@@ -195,6 +211,14 @@ export default function Home() {
                                         <PropertiesSummary properties={properties} />
                                     </>
                                 )}
+                            </div>
+                        )}
+
+                        {/* Analytics Tab */}
+                        {activeTab === 'analytics' && (
+                            <div className="space-y-6">
+                                <PropertyPerformanceDashboard />
+                                <MonthlyPerformanceSummary />
                             </div>
                         )}
                     </div>

@@ -1,17 +1,19 @@
 import { useState } from 'react';
 import { X, Home, MapPin, CheckCircle, AlertCircle, Loader2, DollarSign } from 'lucide-react';
+import type { Property } from '@/types';
 
-interface AddPropertyModalProps {
+interface EditPropertyModalProps {
     isOpen: boolean;
     onClose: () => void;
     onSuccess: () => void;
+    property: Property;
 }
 
-export default function AddPropertyModal({ isOpen, onClose, onSuccess }: AddPropertyModalProps) {
+export default function EditPropertyModal({ isOpen, onClose, onSuccess, property }: EditPropertyModalProps) {
     const [formData, setFormData] = useState({
-        address: '',
-        property_type: '',
-        monthly_rent: ''
+        address: property.address || '',
+        property_type: property.property_type || '',
+        monthly_rent: property.monthly_rent?.toString() || ''
     });
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
@@ -35,7 +37,6 @@ export default function AddPropertyModal({ isOpen, onClose, onSuccess }: AddProp
             ...prev,
             [name]: value
         }));
-        // Clear error when user starts typing
         if (error) setError('');
     };
 
@@ -60,8 +61,8 @@ export default function AddPropertyModal({ isOpen, onClose, onSuccess }: AddProp
         setError('');
 
         try {
-            const response = await fetch('/api/properties', {
-                method: 'POST',
+            const response = await fetch(`/api/properties/${property.id}`, {
+                method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
                 },
@@ -74,30 +75,31 @@ export default function AddPropertyModal({ isOpen, onClose, onSuccess }: AddProp
 
             if (!response.ok) {
                 const errorData = await response.json();
-                throw new Error(errorData.error || 'Failed to add property');
+                throw new Error(errorData.error || 'Failed to update property');
             }
 
-            // Show success state
             setShowSuccess(true);
 
-            // Wait a moment to show success, then close and refresh
             setTimeout(() => {
                 setShowSuccess(false);
-                setFormData({ address: '', property_type: '', monthly_rent: '' });
-                onSuccess(); // This will refresh the property list
+                onSuccess();
                 onClose();
             }, 1500);
 
         } catch (err) {
-            setError(err instanceof Error ? err.message : 'Failed to add property');
+            setError(err instanceof Error ? err.message : 'Failed to update property');
         } finally {
             setIsLoading(false);
         }
     };
 
     const handleClose = () => {
-        if (isLoading) return; // Prevent closing while loading
-        setFormData({ address: '', property_type: '', monthly_rent: '' });
+        if (isLoading) return;
+        setFormData({
+            address: property.address || '',
+            property_type: property.property_type || '',
+            monthly_rent: property.monthly_rent?.toString() || ''
+        });
         setError('');
         setShowSuccess(false);
         onClose();
@@ -108,13 +110,12 @@ export default function AddPropertyModal({ isOpen, onClose, onSuccess }: AddProp
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
             <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
-                {/* Header */}
                 <div className="flex items-center justify-between p-6 border-b">
                     <div className="flex items-center gap-3">
                         <div className="bg-blue-100 p-2 rounded-lg">
                             <Home className="w-5 h-5 text-blue-600" />
                         </div>
-                        <h2 className="text-xl font-semibold text-gray-900">Add New Property</h2>
+                        <h2 className="text-xl font-semibold text-gray-900">Edit Property</h2>
                     </div>
                     <button
                         onClick={handleClose}
@@ -125,24 +126,21 @@ export default function AddPropertyModal({ isOpen, onClose, onSuccess }: AddProp
                     </button>
                 </div>
 
-                {/* Success State */}
                 {showSuccess && (
                     <div className="p-6">
                         <div className="text-center">
                             <div className="bg-green-100 p-3 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
                                 <CheckCircle className="w-8 h-8 text-green-600" />
                             </div>
-                            <h3 className="text-lg font-semibold text-gray-900 mb-2">Property Added!</h3>
-                            <p className="text-gray-600">Your new property has been successfully added to the system.</p>
+                            <h3 className="text-lg font-semibold text-gray-900 mb-2">Property Updated!</h3>
+                            <p className="text-gray-600">Your property has been successfully updated.</p>
                         </div>
                     </div>
                 )}
 
-                {/* Form */}
                 {!showSuccess && (
                     <div className="p-6">
                         <div className="space-y-4">
-                            {/* Address Input */}
                             <div>
                                 <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-2">
                                     Property Address *
@@ -162,7 +160,6 @@ export default function AddPropertyModal({ isOpen, onClose, onSuccess }: AddProp
                                 </div>
                             </div>
 
-                            {/* Property Type Select */}
                             <div>
                                 <label htmlFor="property_type" className="block text-sm font-medium text-gray-700 mb-2">
                                     Property Type
@@ -183,7 +180,6 @@ export default function AddPropertyModal({ isOpen, onClose, onSuccess }: AddProp
                                 </select>
                             </div>
 
-                            {/* Monthly Rent Input */}
                             <div>
                                 <label htmlFor="monthly_rent" className="block text-sm font-medium text-gray-700 mb-2">
                                     Monthly Rent
@@ -203,10 +199,9 @@ export default function AddPropertyModal({ isOpen, onClose, onSuccess }: AddProp
                                         disabled={isLoading}
                                     />
                                 </div>
-                                <p className="text-xs text-gray-500 mt-1">Optional: Set the monthly rental amount for this property</p>
+                                <p className="text-xs text-gray-500 mt-1">Leave blank to remove rent amount</p>
                             </div>
 
-                            {/* Error Message */}
                             {error && (
                                 <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg text-sm">
                                     <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0" />
@@ -215,7 +210,6 @@ export default function AddPropertyModal({ isOpen, onClose, onSuccess }: AddProp
                             )}
                         </div>
 
-                        {/* Footer */}
                         <div className="flex gap-3 mt-6 pt-4 border-t">
                             <button
                                 type="button"
@@ -234,10 +228,10 @@ export default function AddPropertyModal({ isOpen, onClose, onSuccess }: AddProp
                                 {isLoading ? (
                                     <>
                                         <Loader2 className="w-4 h-4 animate-spin" />
-                                        Adding...
+                                        Updating...
                                     </>
                                 ) : (
-                                    'Add Property'
+                                    'Update Property'
                                 )}
                             </button>
                         </div>

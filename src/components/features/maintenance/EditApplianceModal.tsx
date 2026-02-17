@@ -119,8 +119,8 @@ export default function EditApplianceModal({ isOpen, onClose, onSuccess, applian
                     name: formData.name.trim(),
                     type: formData.type || null,
                     installation_date: formData.installation_date || null,
-                    last_maintenance: formData.last_maintenance || null,
                     status: formData.status
+                    // Note: last_maintenance should only be updated via maintenance records, not manual editing
                 }),
             });
 
@@ -342,7 +342,7 @@ export default function EditApplianceModal({ isOpen, onClose, onSuccess, applian
                                 </div>
                             </div>
 
-                            {/* Last Maintenance Date */}
+                            {/* Last Maintenance Date (Read Only) */}
                             <div>
                                 <label htmlFor="last_maintenance" className="block text-sm font-medium text-gray-700 mb-2">
                                     Last Maintenance Date
@@ -354,13 +354,13 @@ export default function EditApplianceModal({ isOpen, onClose, onSuccess, applian
                                         id="last_maintenance"
                                         name="last_maintenance"
                                         value={formData.last_maintenance}
-                                        onChange={handleInputChange}
-                                        className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors text-gray-900"
-                                        disabled={isLoading}
+                                        className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed"
+                                        disabled={true}
+                                        readOnly
                                     />
                                 </div>
                                 <p className="text-xs text-gray-500 mt-1">
-                                    Leave empty if never maintained or unknown
+                                    This date is automatically updated when you add maintenance records
                                 </p>
                             </div>
 

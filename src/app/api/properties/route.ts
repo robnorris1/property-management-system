@@ -15,7 +15,7 @@ export async function GET() {
         const result = await pool.query(`
             SELECT 
                 p.*,
-                COUNT(a.id) as appliance_count
+                COALESCE(COUNT(a.id), 0)::integer as appliance_count
             FROM properties p
             LEFT JOIN appliances a ON p.id = a.property_id
             WHERE p.user_id = $1
@@ -23,7 +23,13 @@ export async function GET() {
             ORDER BY p.created_at DESC
         `, [session.user.id]);
 
-        return Response.json(result.rows);
+        // Ensure appliance_count is always a number
+        const properties = result.rows.map(property => ({
+            ...property,
+            appliance_count: parseInt(property.appliance_count) || 0
+        }));
+
+        return Response.json(properties);
     } catch (error) {
         console.error('Database error:', error);
         return Response.json({ error: 'Failed to fetch properties' }, { status: 500 });
@@ -39,15 +45,19 @@ export async function POST(request: NextRequest) {
             return Response.json({ error: 'Unauthorized' }, { status: 401 });
         }
 
-        const { address, property_type }: { address: string; property_type?: string } = await request.json();
+        const { address, property_type, monthly_rent }: { 
+            address: string; 
+            property_type?: string;
+            monthly_rent?: number;
+        } = await request.json();
 
         if (!address?.trim()) {
             return Response.json({ error: 'Address is required' }, { status: 400 });
         }
 
         const result = await pool.query(
-            'INSERT INTO properties (address, property_type, user_id) VALUES ($1, $2, $3) RETURNING *',
-            [address, property_type, session.user.id]
+            'INSERT INTO properties (address, property_type, monthly_rent, user_id) VALUES ($1, $2, $3, $4) RETURNING *',
+            [address, property_type, monthly_rent, session.user.id]
         );
 
         return Response.json(result.rows[0]);

@@ -2,13 +2,16 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Wrench, Calendar, AlertTriangle, CheckCircle, Plus } from 'lucide-react'
+import { ArrowLeft, Wrench, Calendar, AlertTriangle, CheckCircle, Plus, Edit } from 'lucide-react'
 import AddApplianceModal from '@/components/features/maintenance/AddApplianceModal';
 import EditApplianceModal from '@/components/features/maintenance/EditApplianceModal';
 import AddMaintenanceModal from '@/components/features/maintenance/AddMaintenanceModal';
 import MaintenanceHistory from '@/components/features/maintenance/MaintenanceHistory';
 import ReportIssueModal from '@/components/features/maintenance/ReportIssueModal';
 import IssuesList from '@/components/features/maintenance/IssuesList';
+import EditPropertyModal from '@/components/features/properties/EditPropertyModal';
+import AddRentPaymentModal from '@/components/features/rent/AddRentPaymentModal';
+import PaymentHistory from '@/components/features/rent/PaymentHistory';
 
 import type { Appliance, PropertyWithAppliances } from '@/types';
 
@@ -85,13 +88,15 @@ export default function EnhancedPropertyDetails({
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState('');
     const [propertyId, setPropertyId] = useState<string>('');
-    const [activeTab, setActiveTab] = useState<'overview' | 'maintenance' | 'issues'>('overview');
+    const [activeTab, setActiveTab] = useState<'overview' | 'maintenance' | 'issues' | 'rent'>('overview');
 
     // Modal states
     const [showAddApplianceModal, setShowAddApplianceModal] = useState(false);
     const [showEditApplianceModal, setShowEditApplianceModal] = useState(false);
     const [showAddMaintenanceModal, setShowAddMaintenanceModal] = useState(false);
     const [showReportIssueModal, setShowReportIssueModal] = useState(false);
+    const [showEditPropertyModal, setShowEditPropertyModal] = useState(false);
+    const [showAddRentPaymentModal, setShowAddRentPaymentModal] = useState(false);
     const [selectedAppliance, setSelectedAppliance] = useState<Appliance | null>(null);
 
     useEffect(() => {
@@ -186,14 +191,13 @@ export default function EnhancedPropertyDetails({
                 throw new Error(errorData.error || 'Failed to add maintenance record');
             }
 
-            // Update appliance status to working
+            // Update appliance status to working (only send status to avoid overwriting last_maintenance)
             await fetch(`/api/appliances/${appliance.id}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    ...appliance,
                     status: 'working'
                 }),
             });
@@ -248,15 +252,11 @@ export default function EnhancedPropertyDetails({
 
     // Calculate property-level statistics
     const totalMaintenanceCost = appliances.reduce((sum, a) => {
-        const cost = a.total_maintenance_cost;
-        const numericCost = typeof cost === 'string' ? parseFloat(cost) : cost;
-        return sum + (numericCost || 0);
+        return sum + (a.total_maintenance_cost || 0);
     }, 0);
 
     const totalMaintenanceCount = appliances.reduce((sum, a) => {
-        const count = a.maintenance_count;
-        const numericCount = typeof count === 'string' ? parseInt(count) : count;
-        return sum + (numericCount || 0);
+        return sum + (a.maintenance_count || 0);
     }, 0);
 
     const appliancesNeedingMaintenance = appliances.filter(a => {
@@ -325,6 +325,13 @@ export default function EnhancedPropertyDetails({
                             {/* Quick Actions */}
                             <div className="flex gap-2">
                                 <button
+                                    onClick={() => setShowEditPropertyModal(true)}
+                                    className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 transition-colors flex items-center gap-2"
+                                >
+                                    <Edit className="w-4 h-4" />
+                                    Edit Property
+                                </button>
+                                <button
                                     onClick={() => setShowAddApplianceModal(true)}
                                     className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
                                 >
@@ -369,6 +376,16 @@ export default function EnhancedPropertyDetails({
                                 }`}
                             >
                                 Issues & Problems
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('rent')}
+                                className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
+                                    activeTab === 'rent'
+                                        ? 'border-blue-500 text-blue-600'
+                                        : 'border-transparent text-gray-500 hover:text-gray-700'
+                                }`}
+                            >
+                                Rent Payments
                             </button>
                         </nav>
                     </div>
@@ -466,7 +483,12 @@ export default function EnhancedPropertyDetails({
                                                             <div className="flex items-center gap-2 p-2 bg-red-50 border border-red-200 rounded text-sm">
                                                                 <AlertTriangle className="w-4 h-4 text-red-600 flex-shrink-0" />
                                                                 <span className="text-red-800">
-                                                                    {maintenanceDays ? `Overdue by ${maintenanceDays - 90} days` : 'Needs initial maintenance'}
+                                                                    {maintenanceDays && maintenanceDays > 90 
+                                                                        ? `Overdue by ${maintenanceDays - 90} days` 
+                                                                        : !appliance.last_maintenance 
+                                                                            ? 'No maintenance history - consider scheduling first service'
+                                                                            : 'Maintenance recommended (90+ days since last service)'
+                                                                    }
                                                                 </span>
                                                             </div>
                                                         )}
@@ -573,6 +595,30 @@ export default function EnhancedPropertyDetails({
                                 )}
                             </div>
                         )}
+
+                        {activeTab === 'rent' && (
+                            <div className="space-y-6">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <h3 className="text-lg font-semibold text-gray-900">Rent Management</h3>
+                                        <p className="text-sm text-gray-600">Record and track rent payments for this property</p>
+                                    </div>
+                                    <button
+                                        onClick={() => setShowAddRentPaymentModal(true)}
+                                        className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
+                                    >
+                                        <Plus className="w-4 h-4" />
+                                        Record Rent Payment
+                                    </button>
+                                </div>
+                                
+                                <PaymentHistory 
+                                    propertyId={parseInt(propertyId)}
+                                    propertyAddress={property.address}
+                                    monthlyRent={property.monthly_rent}
+                                />
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
@@ -615,6 +661,20 @@ export default function EnhancedPropertyDetails({
                 onSuccess={handleRefresh}
                 applianceId={selectedAppliance?.id || 0}
                 applianceName={selectedAppliance?.name || ''}
+            />
+
+            <EditPropertyModal
+                isOpen={showEditPropertyModal}
+                onClose={() => setShowEditPropertyModal(false)}
+                onSuccess={handleRefresh}
+                property={property}
+            />
+
+            <AddRentPaymentModal
+                isOpen={showAddRentPaymentModal}
+                onClose={() => setShowAddRentPaymentModal(false)}
+                onSuccess={handleRefresh}
+                property={property}
             />
         </main>
     );
